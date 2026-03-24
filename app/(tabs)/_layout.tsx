@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 
@@ -32,16 +33,19 @@ export default function TabLayout() {
         options={{
           title: "Calculation",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="function" color={color} />
+            // Ícone de Calculadora
+            <Ionicons size={28} name="calculator" color={color} />
           ),
         }}
       />
+
       <Tabs.Screen
         name="about"
         options={{
           title: "About",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="info.circle.fill" color={color} />
+            // Ícone de Documento/Papelzinho
+            <Ionicons size={28} name="document-text" color={color} />
           ),
         }}
       />
