@@ -121,4 +121,3 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 });
-// cc
