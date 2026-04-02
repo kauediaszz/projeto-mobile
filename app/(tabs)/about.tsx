@@ -1,9 +1,10 @@
 // app/(tabs)/about.tsx
+import { useRouter } from "expo-router";
 import React from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import Particles from "@/components/particles";
-import { ThemeToggle } from "@/components/theme-toggle"; // Importação do botão
+import { useAuth } from "@/contexts/auth-context";
 
 function InfoCard({
   title,
@@ -25,12 +26,11 @@ function InfoCard({
 
   return (
     <View
-      // MUDADO: bg-white no claro, slate-800 no escuro
       className={`border-2 rounded-2xl p-3.5 mb-3.5 bg-white dark:bg-slate-800 ${borderColors[variant]} shadow-sm`}
     >
       <View className="flex-row items-center mb-2">
+        {/* Restaurei o Emoji e o Título que haviam sumido! */}
         <Text className="text-[22px] mr-2.5">{emoji}</Text>
-        {/* MUDADO: dark:text-white */}
         <Text className="text-base font-black dark:text-white">{title}</Text>
       </View>
       {children}
@@ -39,9 +39,20 @@ function InfoCard({
 }
 
 export default function AboutScreen() {
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.replace("/" as any);
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
+  };
+
   return (
     <ScrollView
-      // MUDADO: Fundo dinâmico para a tela
       className="bg-white dark:bg-slate-900"
       contentContainerClassName="pb-5"
       showsVerticalScrollIndicator={false}
@@ -61,8 +72,7 @@ export default function AboutScreen() {
 
       <View className="px-4 pt-2.5">
         
-        {/* Adicionado o botão de alternar tema aqui também */}
-        <ThemeToggle />
+        {/* O ThemeToggle foi totalmente removido daqui! */}
 
         <InfoCard
           title="Taxa Metabólica Basal (TMB)"
@@ -112,6 +122,28 @@ export default function AboutScreen() {
             • Sempre consulte um nutricionista antes de iniciar qualquer dieta.
           </Text>
         </View>
+
+        {/* Botão Preferências */}
+        <TouchableOpacity
+          onPress={() => router.push("/preferences")}
+          className="rounded-2xl bg-slate-900 dark:bg-slate-100 px-4 py-3 items-center mt-8 mb-3"
+          activeOpacity={0.85}
+        >
+          <Text className="font-bold text-white dark:text-slate-900">
+            ⚙️ Preferências
+          </Text>
+        </TouchableOpacity>
+
+        {/* Botão Sair da Conta */}
+        <TouchableOpacity
+          onPress={handleLogout}
+          className="rounded-2xl bg-red-500 px-4 py-3 items-center mb-4"
+          activeOpacity={0.85}
+        >
+          <Text className="font-bold text-white">
+            🚪 Sair da Conta
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );

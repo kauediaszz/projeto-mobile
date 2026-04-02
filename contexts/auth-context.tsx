@@ -1,33 +1,96 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import { auth, db } from "@/firebaseConfig";
+import {
+  createUserWithEmailAndPassword,
+  User as FirebaseUser,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 type AuthContextType = {
-  user: string | null;
-  signIn: (username: string, password: string) => boolean;
-  signOut: () => void;
+  user: FirebaseUser | null;
+  signIn: (identifier: string, password: string) => Promise<void>;
+  signUp: (username: string, email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<string | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
 
-  const signIn = (username: string, password: string) => {
-    if (username === "admin" && password === "123456") {
-      setUser(username);
-      return true;
+  useEffect(() => {
+    // Forçar logout na inicialização para desabilitar login automático.
+    const resetAuth = async () => {
+      try {
+        await signOut(auth);
+      } catch (_e) {
+        // ignorar se não houver sessão ativa
+      }
+    };
+
+    resetAuth();
+
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const signIn = async (identifier: string, password: string) => {
+    if (identifier.includes("@")) {
+      await signInWithEmailAndPassword(auth, identifier, password);
+      return;
     }
-    return false;
+
+    const username = identifier.toLowerCase();
+    const userDoc = await getDoc(doc(db, "users", username));
+
+    if (!userDoc.exists()) {
+      throw new Error("Usuário não encontrado");
+    }
+
+    const { email } = userDoc.data() as { email: string };
+    if (!email) {
+      throw new Error("Usuário não encontrado");
+    }
+
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const signOut = () => {
-    setUser(null);
+  const signUp = async (username: string, email: string, password: string) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+    if (!userCredential.user) {
+      throw new Error("Falha ao criar usuário");
+    }
+
+    await updateProfile(userCredential.user, { displayName: username });
+
+    const normalizedUsername = username.toLowerCase();
+    await setDoc(doc(db, "users", normalizedUsername), {
+      email,
+    });
+  };
+
+  const logout = async () => {
+    await signOut(auth);
   };
 
   const value = useMemo(
     () => ({
       user,
       signIn,
-      signOut,
+      signUp,
+      logout,
     }),
     [user],
   );

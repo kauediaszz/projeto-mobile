@@ -21,12 +21,14 @@ const tabs = [
   { key: "about", label: "About" },
 ];
 
-function HomePanel({ user }: { user: string | null }) {
+function HomePanel({ user }: { user: any | null }) {
+  const displayName = user?.displayName ?? "Usuário";
+
   return (
     <View className="flex-1 bg-white dark:bg-slate-900">
       <View className="px-4 pt-12 pb-6">
         <Text className="text-3xl font-black text-slate-900 dark:text-white leading-tight">
-          Olá, {user ?? "Usuário"}
+          Olá, {displayName}
         </Text>
         <Text className="mt-2 text-lg text-slate-600 dark:text-slate-300 leading-8">
           Bem-vindo ao seu espaço de saúde personalizado.
@@ -98,7 +100,7 @@ export default function AppScreen() {
     <View className="flex-1 bg-white dark:bg-slate-900">
       <View className="pt-12 px-4">
         <Text className="text-3xl font-black text-slate-900 dark:text-white mb-4">
-          Bem-vindo, {user ?? "Usuário"}
+          Bem-vindo, {user?.displayName ?? "Usuário"}
         </Text>
 
         <View className="mx-auto w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-1 shadow-sm">
