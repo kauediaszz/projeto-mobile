@@ -1,6 +1,6 @@
-import React from 'react';
-import { TouchableOpacity, Text } from 'react-native';
 import { useAppTheme } from '@/contexts/theme-context';
+import React from 'react';
+import { Text, TouchableOpacity } from 'react-native';
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useAppTheme();
@@ -12,7 +12,7 @@ export function ThemeToggle() {
       className="bg-[#ff0054] p-3 rounded-xl items-center my-2 shadow-sm"
     >
       <Text className="text-white font-black text-xs">
-        {theme === 'light' ? 'Modo Escuro 🌙' : 'Modo Claro ☀️'}
+        {theme === 'light' ? '🌙' : '☀️'}
       </Text>
     </TouchableOpacity>
   );
