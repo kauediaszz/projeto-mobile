@@ -2,15 +2,14 @@
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import { useDiet } from "@/contexts/diet-context";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { useAppTheme } from "@/contexts/theme-context"; // Adicionado para controlo fino de cores
 
 const QUESTIONS = [
@@ -144,7 +143,6 @@ export default function CalculationScreen() {
       showsVerticalScrollIndicator={false}
     >
       <View className="px-3.5 pt-3">
-        <ThemeToggle />
 
         {/* Card de instruções */}
         <View className="bg-white/85 dark:bg-slate-800 rounded-2xl p-3.5 mb-3.5 border border-transparent dark:border-white/5">

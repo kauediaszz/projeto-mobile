@@ -1,6 +1,6 @@
 // app/(tabs)/about.tsx
 import React from "react";
-import { ScrollView, Text, View } from "react-native"; 
+import { ScrollView, Text, View } from "react-native";
 
 import Particles from "@/components/particles";
 import { ThemeToggle } from "@/components/theme-toggle"; // Importação do botão
