@@ -1,50 +1,32 @@
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# 🍏 Dieta I.A.
 
-## Get started
+O **Dieta I.A.** é um aplicativo mobile desenvolvido para gerar recomendações de dietas personalizadas. Ele coleta os dados do usuário (peso, altura, idade, nível de atividade física e objetivo) e realiza cálculos avançados, como Taxa Metabólica Basal (TMB) e Índice de Massa Corporal (IMC), para entregar a melhor estratégia nutricional.
 
-1. Install dependencies
+## 🚀 Tecnologias Utilizadas
 
-   ```bash
-   npm install
-   ```
+Este projeto foi construído com as tecnologias mais modernas do ecossistema mobile:
 
-2. Start the app
+* **[React Native](https://reactnative.dev/)** + **[Expo](https://expo.dev/)**: Framework principal para desenvolvimento mobile multiplataforma (Android, iOS e Web).
+* **[Expo Router](https://docs.expo.dev/router/introduction/)**: Roteamento baseado em arquivos (File-based routing).
+* **[NativeWind v4](https://www.nativewind.dev/)**: O motor do Tailwind CSS adaptado para React Native, permitindo estilização rápida e sem arquivos de StyleSheet gigantes.
+* **[TypeScript](https://www.typescriptlang.org/)**: Tipagem estática para um código mais seguro e previsível.
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## 🛠️ Como rodar o projeto na sua máquina
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Siga os passos abaixo para testar o aplicativo localmente.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Pré-requisitos
+Antes de começar, você vai precisar ter instalado na sua máquina:
+* [Node.js](https://nodejs.org/en/) (versão LTS recomendada)
+* [Git](https://git-scm.com/)
+* O aplicativo **Expo Go** instalado no seu celular (disponível na App Store e Google Play).
 
-## Get a fresh project
+### Instalação
 
-When you're ready, run:
-
+**1. Clone o repositório:**
 ```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+git clone [https://github.com/SEU_USUARIO/projeto-mobile.git](https://github.com/SEU_USUARIO/projeto-mobile.git)
+cd projeto-mobile

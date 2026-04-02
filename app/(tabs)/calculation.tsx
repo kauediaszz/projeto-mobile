@@ -1,14 +1,16 @@
+// app/(tabs)/calculation.tsx
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import { useDiet } from "@/contexts/diet-context";
+import { useAppTheme } from "@/contexts/theme-context"; // Adicionado para controlo fino de cores
 
 const QUESTIONS = [
   {
@@ -69,6 +71,7 @@ function OptionButton({
 }
 
 export default function CalculationScreen() {
+  const { theme } = useAppTheme(); // Pegamos o tema para ajustar o placeholder
   const { setRespostas, setResultadoFinal } = useDiet();
   const [idx, setIdx] = useState(0);
   const [valorAtual, setValorAtual] = useState("");
@@ -135,28 +138,32 @@ export default function CalculationScreen() {
 
   return (
     <ScrollView
+      className="bg-white dark:bg-slate-900" // Fundo dinâmico
       contentContainerClassName="pb-8"
       showsVerticalScrollIndicator={false}
     >
       <View className="px-3.5 pt-3">
-        <View className="bg-white/85 rounded-2xl p-3.5 mb-3.5">
-          <Text className="font-black mb-3 text-[#05121a]">
+
+        {/* Card de instruções */}
+        <View className="bg-white/85 dark:bg-slate-800 rounded-2xl p-3.5 mb-3.5 border border-transparent dark:border-white/5">
+          <Text className="font-black mb-3 text-[#05121a] dark:text-white">
             Vamos para as perguntas
           </Text>
-          <Text className="text-xl font-black mb-2 text-[#05121a]">
+          <Text className="text-xl font-black mb-2 text-[#05121a] dark:text-white">
             Vamos criar sua Dieta
           </Text>
-          <Text className="text-[#24323f] leading-5 font-semibold">
+          <Text className="text-[#24323f] dark:text-slate-300 leading-5 font-semibold">
             Insira seus dados para receber recomendações personalizadas.
           </Text>
         </View>
 
-        <View className="bg-white/95 rounded-2xl p-3.5 shadow-sm">
+        {/* Card de perguntas */}
+        <View className="bg-white/95 dark:bg-slate-800 rounded-2xl p-3.5 shadow-sm border border-transparent dark:border-white/5">
           <Text className="font-black text-[#ff0054] mb-2.5">
             Pergunta {idx + 1} de {totalPerguntas}
           </Text>
 
-          <Text className="text-lg font-black mb-3 text-[#05121a]">
+          <Text className="text-lg font-black mb-3 text-[#05121a] dark:text-white">
             {perguntaAtual.pergunta}
           </Text>
 
@@ -176,40 +183,27 @@ export default function CalculationScreen() {
             perguntaAtual.tipo === "altura_mask" ||
             perguntaAtual.tipo === "text") && (
             <View>
-              {perguntaAtual.tipo === "text" ? (
-                <TextInput
-                  value={valorAtual}
-                  onChangeText={setValorAtual}
-                  multiline
-                  className="border border-black/15 rounded-xl px-3 py-2.5 bg-white mb-3 min-h-[100px] font-bold"
-                />
-              ) : (
-                <TextInput
-                  value={valorAtual}
-                  keyboardType={
-                    perguntaAtual.tipo === "number" ? "numeric" : "decimal-pad"
-                  }
-                  onChangeText={(txt) =>
-                    setValorAtual(
-                      perguntaAtual.tipo === "altura_mask"
-                        ? aplicarMascaraAltura(txt)
-                        : txt,
-                    )
-                  }
-                  placeholder={
-                    perguntaAtual.tipo === "altura_mask" ? "1,75" : ""
-                  }
-                  className="border border-black/15 rounded-xl px-3 py-2.5 bg-white mb-3 font-bold"
-                />
-              )}
+              <TextInput
+                value={valorAtual}
+                onChangeText={setValorAtual}
+                multiline={perguntaAtual.tipo === "text"}
+                keyboardType={
+                  perguntaAtual.tipo === "number" ? "numeric" : 
+                  perguntaAtual.tipo === "altura_mask" ? "decimal-pad" : "default"
+                }
+                // Ajusta a cor do texto digitado e do fundo do input
+                className="border border-black/15 dark:border-white/15 rounded-xl px-3 py-2.5 bg-white dark:bg-slate-700 text-[#05121a] dark:text-white mb-3 font-bold"
+                placeholder={perguntaAtual.tipo === "altura_mask" ? "1,75" : ""}
+                placeholderTextColor={theme === 'dark' ? '#94a3b8' : '#64748b'}
+              />
 
               <View className="flex-row justify-between mt-1.5 gap-2.5">
                 <TouchableOpacity
-                  className="flex-1 bg-black/5 py-3 rounded-xl items-center"
+                  className="flex-1 bg-black/5 dark:bg-white/10 py-3 rounded-xl items-center"
                   onPress={handleBack}
                   activeOpacity={0.9}
                 >
-                  <Text className="font-black text-[#05121a]">Voltar</Text>
+                  <Text className="font-black text-[#05121a] dark:text-white">Voltar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="flex-1 bg-[#ff0054] py-3 rounded-xl items-center"
@@ -227,19 +221,13 @@ export default function CalculationScreen() {
           {perguntaAtual.tipo === "select" && (
             <View className="flex-row justify-between mt-1.5 gap-2.5">
               <TouchableOpacity
-                className="flex-1 bg-black/5 py-3 rounded-xl items-center"
+                className="flex-1 bg-black/5 dark:bg-white/10 py-3 rounded-xl items-center"
                 onPress={handleBack}
                 activeOpacity={0.9}
               >
-                <Text className="font-black text-[#05121a]">Voltar</Text>
+                <Text className="font-black text-[#05121a] dark:text-white">Voltar</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-1 bg-black/5 py-3 rounded-xl items-center"
-                disabled
-                activeOpacity={1}
-              >
-                <Text className="font-black text-white"> </Text>
-              </TouchableOpacity>
+              <View className="flex-1" />
             </View>
           )}
         </View>
