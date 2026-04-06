@@ -1,13 +1,14 @@
 import { Redirect } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    useWindowDimensions,
-    View,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
 } from "react-native";
 
 import TypingText from "@/components/typing-text";
@@ -53,13 +54,7 @@ function HomePanel({ user }: { user: any | null }) {
           <View className="rounded-3xl bg-slate-50 p-4 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
             <Text className="text-slate-700 dark:text-slate-200 font-semibold">Próxima ação</Text>
             <Text className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Vá para Calculation para inserir seus dados e descobrir sua taxa metabólica.
-            </Text>
-          </View>
-          <View className="rounded-3xl bg-slate-50 p-4 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-            <Text className="text-slate-700 dark:text-slate-200 font-semibold">Dica rápida</Text>
-            <Text className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Use About para alternar o tema apenas quando quiser ver a tela escura.
+              Vá para Calculation para inserir seus dados.
             </Text>
           </View>
         </View>
@@ -72,29 +67,46 @@ export default function AppScreen() {
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollView | null>(null);
   const { user } = useAuth();
+
   const [activeIndex, setActiveIndex] = useState(0);
+  const [navWidth, setNavWidth] = useState(0);
+
+  const isScrolling = useRef(false);
 
   if (!user) {
     return <Redirect href="/" />;
   }
 
+  // 👉 NAV CLICK
   const handleTabPress = (index: number) => {
+    isScrolling.current = true;
     setActiveIndex(index);
     scrollRef.current?.scrollTo({ x: width * index, animated: true });
   };
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ x: width * activeIndex, animated: true });
-  }, [activeIndex, width]);
+  // 👉 SWIPE
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / width);
 
-  const handleScroll = (
-    event: NativeSyntheticEvent<NativeScrollEvent>,
-  ) => {
-    const page = Math.round(event.nativeEvent.contentOffset.x / width);
-    if (page !== activeIndex) {
-      setActiveIndex(page);
+    if (index !== activeIndex) {
+      setActiveIndex(index);
     }
   };
+
+  // 👉 SYNC FINAL
+  useEffect(() => {
+    if (!isScrolling.current) return;
+
+    scrollRef.current?.scrollTo({ x: width * activeIndex, animated: true });
+    isScrolling.current = false;
+  }, [activeIndex, width]);
+
+  const handleNavLayout = (event: LayoutChangeEvent) => {
+    setNavWidth(event.nativeEvent.layout.width);
+  };
+
+  const indicatorWidth = navWidth > 0 ? navWidth / tabs.length : 0;
 
   return (
     <View className="flex-1 bg-white dark:bg-slate-900">
@@ -103,18 +115,30 @@ export default function AppScreen() {
           Bem-vindo, {user?.displayName ?? "Usuário"}
         </Text>
 
-        <View className="mx-auto w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-1 shadow-sm">
-          <View className="flex-row rounded-full overflow-hidden">
+        {/* NAVBAR */}
+        <View
+          className="mx-auto w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-1 relative overflow-hidden"
+          onLayout={handleNavLayout}
+        >
+          {navWidth > 0 && (
+            <View
+              className="absolute inset-y-0 rounded-full bg-slate-900 dark:bg-white"
+              style={{
+                width: indicatorWidth,
+                transform: [{ translateX: activeIndex * indicatorWidth }],
+              }}
+            />
+          )}
+
+          <View className="flex-row">
             {tabs.map((screen, index) => {
               const active = index === activeIndex;
+
               return (
                 <TouchableOpacity
                   key={screen.key}
                   onPress={() => handleTabPress(index)}
-                  activeOpacity={0.85}
-                  className={`flex-1 px-3 py-2 items-center justify-center ${
-                    active ? "bg-slate-900 dark:bg-white" : ""
-                  }`}
+                  className="flex-1 px-3 py-2 items-center"
                 >
                   <Text
                     className={`font-black ${
@@ -132,23 +156,25 @@ export default function AppScreen() {
         </View>
       </View>
 
+      {/* SWIPE CONTAINER */}
       <ScrollView
         horizontal
         pagingEnabled
-        nestedScrollEnabled
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         ref={scrollRef}
         className="flex-1 mt-4"
       >
-        <View style={{ width }} className="flex-1">
+        <View style={{ width }}>
           <HomePanel user={user} />
         </View>
-        <View style={{ width }} className="flex-1">
+
+        <View style={{ width }}>
           <CalculationScreen />
         </View>
-        <View style={{ width }} className="flex-1">
+
+        <View style={{ width }}>
           <AboutScreen />
         </View>
       </ScrollView>
