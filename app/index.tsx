@@ -63,7 +63,7 @@ export default function OnboardingScreen() {
           <View className="items-center mb-8 z-10">
              <Image 
                 source={require("../assets/images/logo.png")} 
-                style={{ width: 120, height: 120 }} 
+                style={{ width: 120, height: 120, tintColor: '#ff0000' }} 
                 resizeMode="contain"
              />
           </View>

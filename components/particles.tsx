@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    opacity: 0.35,
+    opacity: 0.2,
   },
   emojiWrap: {
     backgroundColor: 'rgba(255,255,255,0.15)',
