@@ -40,9 +40,6 @@ export default function ResultScreen() {
       showsVerticalScrollIndicator={false}
     >
       <View className="px-4 pt-6">
-        {/* Botão de alternar tema no topo */}
-        <ThemeToggle />
-
         <Text className="text-2xl font-black mb-4 text-[#05121a] dark:text-white">
           Resultado Metabólico
         </Text>
