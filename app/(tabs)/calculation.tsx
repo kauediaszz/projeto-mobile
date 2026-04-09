@@ -2,15 +2,16 @@
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { useDiet } from "@/contexts/diet-context";
 import { useAppTheme } from "@/contexts/theme-context"; // Adicionado para controlo fino de cores
+import { calculateImcFromGemini } from "@/services/gemini";
 
 const QUESTIONS = [
   {
@@ -78,6 +79,7 @@ export default function CalculationScreen() {
   const [acumulador, setAcumulador] = useState<Record<string, string | number>>(
     {},
   );
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const perguntaAtual = QUESTIONS[idx];
   const totalPerguntas = QUESTIONS.length;
@@ -96,36 +98,58 @@ export default function CalculationScreen() {
     return cleanValue;
   }
 
-  function avancarComValor(novoValor: string | number) {
+  async function handleFinish(atualizado: Record<string, string | number>) {
+    if (isProcessing) {
+      return;
+    }
+
+    setIsProcessing(true);
+    setRespostas(atualizado);
+    console.log("[Gemini] Enviando dados para API:", atualizado);
+
+    try {
+      const resultado = await calculateImcFromGemini(atualizado);
+      console.log("[Gemini] Resposta recebida:", resultado);
+      setResultadoFinal({ imc: resultado, tdee: null, dietaIA: null });
+      router.push("/result");
+    } catch (error) {
+      console.error("[Gemini] Erro ao calcular IMC com Gemini:", error);
+      throw error;
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  async function avancarComValor(novoValor: string | number) {
     const qid = QUESTIONS[idx].id;
     const atualizado = { ...acumulador, [qid]: novoValor };
     setAcumulador(atualizado);
 
     if (idx === QUESTIONS.length - 1) {
-      setResultadoFinal("Cálculo pendente");
-      setRespostas(atualizado);
-      router.push("/result");
+      setResultadoFinal({ imc: null, tdee: null, dietaIA: null });
+      await handleFinish(atualizado);
       return;
     }
+
     setIdx((i) => i + 1);
   }
 
-  function handleNext() {
+  async function handleNext() {
     if (perguntaAtual.tipo === "number") {
       const num = Number(valorAtual);
       if (Number.isNaN(num) || num <= 0) return;
-      avancarComValor(num);
+      await avancarComValor(num);
       return;
     }
 
     if (perguntaAtual.tipo === "altura_mask") {
       if (!valorAtual || valorAtual.length < 3) return;
-      avancarComValor(valorAtual);
+      await avancarComValor(valorAtual);
       return;
     }
 
     if (!valorAtual.trim()) return;
-    avancarComValor(valorAtual.trim());
+    await avancarComValor(valorAtual.trim());
   }
 
   function handleBack() {
@@ -206,12 +230,13 @@ export default function CalculationScreen() {
                   <Text className="font-black text-[#05121a] dark:text-white">Voltar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="flex-1 bg-[#ff0054] py-3 rounded-xl items-center"
+                  className={`flex-1 bg-[#ff0054] py-3 rounded-xl items-center ${isProcessing ? 'opacity-50' : ''}`}
                   onPress={handleNext}
+                  disabled={isProcessing}
                   activeOpacity={0.9}
                 >
                   <Text className="font-black text-white">
-                    {idx === QUESTIONS.length - 1 ? "Finalizar" : "Próxima"}
+                    {isProcessing ? "Calculando..." : idx === QUESTIONS.length - 1 ? "Finalizar" : "Próxima"}
                   </Text>
                 </TouchableOpacity>
               </View>
