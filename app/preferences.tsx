@@ -90,6 +90,7 @@ export default function PreferencesScreen() {
           <TextInput
             value={displayName}
             onChangeText={setDisplayName}
+            maxLength={30}
             placeholder="Seu nome"
             placeholderTextColor="#94a3b8"
             className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white rounded-xl px-4 py-3 mb-4 border border-slate-200 dark:border-slate-700"

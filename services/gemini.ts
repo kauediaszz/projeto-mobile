@@ -10,13 +10,13 @@ const GEMINI_ENDPOINT =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 
 function buildImcPrompt(dados: GeminiInput) {
-  const sexo = String(dados.sexo ?? 'nao informado');
-  const idade = String(dados.idade ?? 'nao informado');
-  const peso = String(dados.peso ?? 'nao informado');
-  const altura = String(dados.altura ?? 'nao informado');
-  const atividade = String(dados.atividade ?? 'nao informado');
-  const objetivo = String(dados.objetivo ?? 'nao informado');
-  const preferencias = String(dados.preferencias ?? 'nao informado');
+  const sexo = String(dados.sexo ?? 'não informado');
+  const idade = String(dados.idade ?? 'não informado');
+  const peso = String(dados.peso ?? 'não informado');
+  const altura = String(dados.altura ?? 'não informado');
+  const atividade = String(dados.atividade ?? 'não informado');
+  const objetivo = String(dados.objetivo ?? 'não informado');
+  const preferencias = String(dados.preferencias ?? 'não informado');
 
   return `You are a health assistant. Calculate the user BMI based on the data below and return only the BMI value using a comma decimal separator. Do not return explanations.
 
@@ -32,25 +32,45 @@ User data:
 }
 
 function buildDietPrompt(dados: GeminiInput) {
-  const sexo = String(dados.sexo ?? 'nao informado');
-  const idade = String(dados.idade ?? 'nao informado');
-  const peso = String(dados.peso ?? 'nao informado');
-  const altura = String(dados.altura ?? 'nao informado');
-  const atividade = String(dados.atividade ?? 'nao informado');
-  const objetivo = String(dados.objetivo ?? 'nao informado');
-  const preferencias = String(dados.preferencias ?? 'nao informado');
+  const sexo = String(dados.sexo ?? 'não informado');
+  const idade = String(dados.idade ?? 'não informado');
+  const peso = String(dados.peso ?? 'não informado');
+  const altura = String(dados.altura ?? 'não informado');
+  const atividade = String(dados.atividade ?? 'não informado');
+  const objetivo = String(dados.objetivo ?? 'não informado');
+  const preferencias = String(dados.preferencias ?? 'não informado');
 
-  return `You are a health assistant. Use the user data below to calculate BMI, estimate TDEE and generate a one-day meal plan focused on the goal. Return all results as plain text, no JSON.
+  return `Você é um Nutricionista Esportivo experiente.
+  Crie uma estratégia nutricional com base nos dados do usuário.
 
-User data:
-- Sex: ${sexo}
-- Age: ${idade}
-- Weight: ${peso} kg
-- Height: ${altura}
-- Activity: ${atividade}
-- Goal: ${objetivo}
-- Food preferences: ${preferencias}
-`;
+DADOS DO UTILIZADOR:
+- Sexo: ${sexo}
+- Idade: ${idade} anos
+- Peso: ${peso} kg
+- Altura: ${altura}
+- Nível de Atividade: ${atividade}
+- Objetivo: ${objetivo}
+- Preferências/Restrições: ${preferencias}
+
+
+REGRAS ESTritas DE FORMATAÇÃO:
+1. NUNCA use formatação Markdown (não use asteriscos **, não use hashtags ##).
+2. Não use caracteres especiais complexos ou emojis não convencionais.
+3. Use um traço simples (-) para listas.
+4. Pule uma linha em branco entre as seções.
+5. Siga EXATAMENTE a estrutura abaixo, substituindo os espaços pelos seus cálculos e recomendações.
+
+ESTRUTURA OBRIGATÓRIA:
+
+RESULTADOS DA AVALIAÇÃO
+IMC: [Insira o valor e a classificação]
+GASTO CALÓRICO DIÁRIO (TDEE): [Insira o valor exato em kcal]
+
+PLANO ALIMENTAR
+[Crie as refeições indicando horários e quantidades exatas. Respeite as preferências.]
+
+DICAS EXTRAS
+[Dicas focadas no objetivo de ${objetivo}]`;
 }
 
 async function requestGemini(prompt: string) {
@@ -84,7 +104,8 @@ async function requestGemini(prompt: string) {
       const response = await fetch(GEMINI_ENDPOINT, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          // A linha abaixo foi alterada para evitar erros de caracteres
+          'Content-Type': 'application/json; charset=utf-8',
           'X-goog-api-key': apiKey,
         },
         body: JSON.stringify(body),
@@ -98,13 +119,12 @@ async function requestGemini(prompt: string) {
           const waitTime = Math.pow(2, attempt - 1) * backoffMultiplier; // 1s, 2s, 4s
           console.warn(`[Gemini] Attempt ${attempt} returned ${response.status}. Retrying in ${waitTime}ms...`);
           await new Promise((resolve) => setTimeout(resolve, waitTime));
-          continue; // Go to next attempt
+          continue; 
         } else {
           throw new Error(`[Gemini] Max retries (${maxRetries}) exhausted. Last status: ${response.status} ${response.statusText}`);
         }
       }
 
-      // Handle other HTTP errors
       if (!response.ok) {
         throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
       }
@@ -119,33 +139,26 @@ async function requestGemini(prompt: string) {
         throw new Error(`Gemini returned invalid JSON: ${error}`);
       }
 
-      console.log('[Gemini] Raw response:', data);
-
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!text) {
         throw new Error(`Gemini response missing expected text. Raw response: ${JSON.stringify(data)}`);
       }
 
-      console.log('[Gemini] Gemini responded with text:', text);
       return text;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       console.error(`[Gemini] Attempt ${attempt} failed:`, lastError.message);
 
       if (attempt < maxRetries && (lastError.message.includes('503') || lastError.message.includes('429'))) {
-        // Will retry in next iteration
         continue;
       } else if (attempt === maxRetries) {
-        // All retries exhausted
         throw lastError;
       } else {
-        // Other errors that shouldn't retry
         throw lastError;
       }
     }
   }
 
-  // Fallback error (should not reach here)
   throw lastError || new Error('[Gemini] Unknown error after retries');
 }
 

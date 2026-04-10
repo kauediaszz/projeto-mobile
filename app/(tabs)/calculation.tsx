@@ -209,13 +209,24 @@ export default function CalculationScreen() {
             <View>
               <TextInput
                 value={valorAtual}
-                onChangeText={setValorAtual}
+                onChangeText={(text) => {
+                  // Se a pergunta for do tipo altura_mask, aplica a função de máscara
+                  if (perguntaAtual.tipo === "altura_mask") {
+                    setValorAtual(aplicarMascaraAltura(text));
+                  } else {
+                    setValorAtual(text);
+                  }
+                }}
                 multiline={perguntaAtual.tipo === "text"}
+                maxLength={
+                  perguntaAtual.id === "idade" ? 3 : 
+                  perguntaAtual.id === "peso" ? 3 : 
+                  perguntaAtual.id === "altura" ? 3 : 200
+                }
                 keyboardType={
                   perguntaAtual.tipo === "number" ? "numeric" : 
                   perguntaAtual.tipo === "altura_mask" ? "decimal-pad" : "default"
                 }
-                // Ajusta a cor do texto digitado e do fundo do input
                 className="border border-black/15 dark:border-white/15 rounded-xl px-3 py-2.5 bg-white dark:bg-slate-700 text-[#05121a] dark:text-white mb-3 font-bold"
                 placeholder={perguntaAtual.tipo === "altura_mask" ? "1,75" : ""}
                 placeholderTextColor={theme === 'dark' ? '#94a3b8' : '#64748b'}

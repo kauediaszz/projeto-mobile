@@ -31,7 +31,7 @@ export default function ResultScreen() {
   const { respostas, resultadoFinal, setResultadoFinal } = useDiet();
   const [loadingIA, setLoadingIA] = useState(true);
 
-  useEffect(() => {
+ useEffect(() => {
     async function fetchDietaIA() {
       if (resultadoFinal?.dietaIA) {
         setLoadingIA(false);
@@ -44,8 +44,13 @@ export default function ResultScreen() {
         const outputText = await generateDietFromGemini(respostas);
         console.log('[Gemini] Resposta bruta da dieta IA:', outputText);
 
+        // 1. EXPRESSÃO REGULAR: Procura o texto exato e extrai apenas os números que vêm logo depois
+        const tdeeMatch = outputText?.match(/GASTO CALÓRICO DIÁRIO \(TDEE\):\s*([\d.,]+)/i);
+        const tdeeValue = tdeeMatch ? tdeeMatch[1] : null;
+
         setResultadoFinal((current) => ({
           ...(current ?? { imc: null, tdee: null, dietaIA: null }),
+          tdee: tdeeValue, // 2. Salvamos o valor extraído diretamente no contexto para o SummaryCard
           dietaIA: outputText || 'A IA retornou uma resposta vazia.',
         }));
       } catch (error) {
@@ -71,14 +76,14 @@ export default function ResultScreen() {
       <View className="px-4 pt-6">
         <View className="flex-row justify-between items-center mb-4">
           <Text className="text-2xl font-black text-[#05121a] dark:text-white">
-            Resultado Metab�lico
+            Resultado Metabólico
           </Text>
           <ThemeToggle />
         </View>
 
         <View className="flex-row justify-between mt-2 gap-3">
           <SummaryCard title="IMC" value={resultadoFinal?.imc ?? null} />
-          <SummaryCard title="Gasto Di�rio" value={resultadoFinal?.tdee ?? null} suffix=" kcal" />
+          <SummaryCard title="Gasto Diário" value={resultadoFinal?.tdee ?? null} suffix=" kcal" />
         </View>
 
         <View className="mt-6 p-4 rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-black/10 dark:border-white/10">
@@ -86,12 +91,12 @@ export default function ResultScreen() {
             <View className="items-center justify-center py-8">
               <ActivityIndicator size="large" color="#ff0054" />
               <Text className="mt-3 text-center text-[#24323f] dark:text-slate-300 font-semibold">
-                A IA est� calculando sua dieta personalizada. Aguarde um instante...
+                A IA está calculando sua dieta personalizada. Aguarde um instante...
               </Text>
             </View>
           ) : (
             <Text className="text-[#05121a] dark:text-white leading-6 whitespace-pre-line">
-              {resultadoFinal?.dietaIA ?? 'Nenhuma sugest�o gerada pela IA ainda.'}
+              {resultadoFinal?.dietaIA ?? 'Nenhuma sugestão gerada pela IA ainda.'}
             </Text>
           )}
         </View>
