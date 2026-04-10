@@ -1,7 +1,7 @@
 // app/result.tsx
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useDiet } from '@/contexts/diet-context';
@@ -28,8 +28,10 @@ function SummaryCard({ title, value, suffix = '' }: SummaryCardProps) {
 }
 
 export default function ResultScreen() {
-  const { respostas, resultadoFinal, setResultadoFinal } = useDiet();
+  const { respostas, resultadoFinal, setResultadoFinal, salvarDieta } = useDiet();
   const [loadingIA, setLoadingIA] = useState(true);
+  const [showSavePrompt, setShowSavePrompt] = useState(false);
+  const [dietaNome, setDietaNome] = useState('');
 
   useEffect(() => {
     async function fetchDietaIA() {
@@ -61,6 +63,16 @@ export default function ResultScreen() {
 
     fetchDietaIA();
   }, [respostas, resultadoFinal?.dietaIA, setResultadoFinal]);
+
+  useEffect(() => {
+    if (!loadingIA && resultadoFinal?.dietaIA) {
+      const timer = setTimeout(() => {
+        setShowSavePrompt(true);
+      }, 15000); // 15 segundos
+
+      return () => clearTimeout(timer);
+    }
+  }, [loadingIA, resultadoFinal?.dietaIA]);
 
   return (
     <ScrollView
@@ -95,6 +107,40 @@ export default function ResultScreen() {
             </Text>
           )}
         </View>
+
+        {showSavePrompt && (
+          <View className="mt-6 p-4 rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-black/10 dark:border-white/10">
+            <Text className="text-lg font-black text-[#05121a] dark:text-white mb-4">
+              Definir nome da dieta
+            </Text>
+            <TextInput
+              className="border border-slate-300 dark:border-slate-600 rounded-lg p-3 mb-4 text-[#05121a] dark:text-white bg-slate-50 dark:bg-slate-700"
+              placeholder="Digite o nome da sua dieta"
+              placeholderTextColor="#6b7280"
+              value={dietaNome}
+              onChangeText={setDietaNome}
+            />
+            <TouchableOpacity
+              className="bg-[#ff0054] rounded-2xl py-4 items-center shadow-md shadow-[#ff0054]/30"
+              onPress={async () => {
+                const nome = dietaNome.trim();
+                if (!nome) {
+                  return;
+                }
+
+                try {
+                  await salvarDieta(nome);
+                  router.replace('/app');
+                } catch (error) {
+                  console.error('Erro ao salvar dieta:', error);
+                }
+              }}
+              activeOpacity={0.9}
+            >
+              <Text className="font-black text-white text-base">Concluir</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <TouchableOpacity
           className="mt-6 bg-[#ff0054] rounded-2xl py-4 items-center shadow-md shadow-[#ff0054]/30"
