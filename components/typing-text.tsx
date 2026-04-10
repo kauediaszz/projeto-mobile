@@ -47,8 +47,18 @@ export default function TypingText({
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.text}>{displayedText}</Text>
-      <Text style={styles.cursor}>|</Text>
+      <Text 
+        style={styles.text} 
+        className="text-slate-900 dark:text-white"
+      >
+        {displayedText}
+      </Text>
+      <Text 
+        style={styles.cursor} 
+        className="text-slate-900 dark:text-white"
+      >
+        |
+      </Text>
     </View>
   );
 }

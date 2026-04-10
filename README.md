@@ -1,3 +1,4 @@
+
 # 🍏 Dieta I.A.
 
 O **Dieta I.A.** é um aplicativo mobile desenvolvido para gerar recomendações de dietas personalizadas. Ele coleta os dados do usuário (peso, altura, idade, nível de atividade física e objetivo) e realiza cálculos avançados, como Taxa Metabólica Basal (TMB) e Índice de Massa Corporal (IMC), para entregar a melhor estratégia nutricional.

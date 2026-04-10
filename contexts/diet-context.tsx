@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
 
 type ResultadoFinal = {
-  imc: string | null;
-  tdee: number | null;
+  imc?: string | null;
+  tdee?: number | null;
+  dietaIA?: string | null; // 👈 Novo campo para a resposta da IA
 } | null;
 
 type Respostas = Record<string, string | number>;

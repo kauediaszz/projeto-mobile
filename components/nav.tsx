@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { LayoutChangeEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 function hexToRgba(hex: string, alpha = 1) {
   const h = String(hex).replace('#', '');
@@ -23,30 +23,53 @@ export default function Nav({
   bgColor = '#ff0054',
   textColor = '#ffffff',
 }: NavProps) {
+  const [navWidth, setNavWidth] = useState(0);
   const navStyle = { backgroundColor: bgColor };
   const activeTextColor = { color: textColor, fontWeight: '700' as const };
   const inactiveTextColor = { color: hexToRgba(textColor, 0.85) };
 
-  const btn = (key: string, label: string) => {
-    const active = telaAtual === key;
-    return (
-      <TouchableOpacity
-        key={key}
-        style={[styles.item, active ? styles.itemActive : styles.itemInactive]}
-        onPress={() => mudarTela(key)}
-        activeOpacity={0.85}>
-        <Text style={active ? [styles.itemText, activeTextColor] : [styles.itemText, inactiveTextColor]}>
-          {label}
-        </Text>
-      </TouchableOpacity>
-    );
+  const items = [
+    { key: 'home', label: 'HOME' },
+    { key: 'calculation', label: 'CALCULATION' },
+    { key: 'about', label: 'ABOUT' },
+  ];
+
+  const activeIndex = items.findIndex((item) => item.key === telaAtual);
+  const indicatorWidth = navWidth > 0 ? navWidth / items.length : 0;
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    setNavWidth(event.nativeEvent.layout.width);
   };
 
   return (
-    <View style={[styles.nav, navStyle]}>
-      {btn('home', 'HOME')}
-      {btn('calculation', 'CALCULATION')}
-      {btn('about', 'ABOUT')}
+    <View style={[styles.nav, navStyle]} onLayout={handleLayout}>
+      {navWidth > 0 && activeIndex >= 0 && (
+        <View
+          style={[
+            styles.indicator,
+            {
+              width: indicatorWidth,
+              transform: [{ translateX: activeIndex * indicatorWidth }],
+            },
+          ]}
+        />
+      )}
+
+      {items.map((item) => {
+        const active = item.key === telaAtual;
+        return (
+          <TouchableOpacity
+            key={item.key}
+            style={styles.item}
+            onPress={() => mudarTela(item.key)}
+            activeOpacity={0.85}
+          >
+            <Text style={active ? [styles.itemText, activeTextColor] : [styles.itemText, inactiveTextColor]}>
+              {item.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
@@ -59,6 +82,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'space-between',
     elevation: 2,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  indicator: {
+    position: 'absolute',
+    top: 2,
+    bottom: 2,
+    left: 0,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
   item: {
     flex: 1,
@@ -68,10 +101,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 4,
   },
-  itemActive: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-  },
-  itemInactive: {},
   itemText: {
     fontSize: 14,
     letterSpacing: 0.2,
