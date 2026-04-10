@@ -1,14 +1,14 @@
-import { Redirect } from "expo-router";
+import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  LayoutChangeEvent,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
+    LayoutChangeEvent,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    useWindowDimensions,
+    View,
 } from "react-native";
 
 import TypingText from "@/components/typing-text";
@@ -64,17 +64,32 @@ function HomePanel({ user }: { user: any | null }) {
 }
 
 export default function AppScreen() {
+  const { user } = useAuth();
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollView | null>(null);
-  const { user } = useAuth();
+  const router = useRouter();
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [navWidth, setNavWidth] = useState(0);
 
   const isScrolling = useRef(false);
 
+  useEffect(() => {
+    if (!user) {
+      router.replace("/");
+    }
+  }, [user, router]);
+
+  // 👉 SYNC FINAL
+  useEffect(() => {
+    if (!isScrolling.current) return;
+
+    scrollRef.current?.scrollTo({ x: width * activeIndex, animated: true });
+    isScrolling.current = false;
+  }, [activeIndex, width]);
+
   if (!user) {
-    return <Redirect href="/" />;
+    return <View />;
   }
 
   // 👉 NAV CLICK
@@ -93,14 +108,6 @@ export default function AppScreen() {
       setActiveIndex(index);
     }
   };
-
-  // 👉 SYNC FINAL
-  useEffect(() => {
-    if (!isScrolling.current) return;
-
-    scrollRef.current?.scrollTo({ x: width * activeIndex, animated: true });
-    isScrolling.current = false;
-  }, [activeIndex, width]);
 
   const handleNavLayout = (event: LayoutChangeEvent) => {
     setNavWidth(event.nativeEvent.layout.width);

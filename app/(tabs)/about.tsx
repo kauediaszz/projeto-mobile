@@ -45,9 +45,11 @@ export default function AboutScreen() {
   const handleLogout = async () => {
     try {
       await logout();
-      router.replace("/" as any);
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
+    } finally {
+      // Sempre redirecionar, mesmo se houver erro no logout
+      router.replace("/");
     }
   };
 
