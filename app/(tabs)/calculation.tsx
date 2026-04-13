@@ -58,6 +58,15 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
   const perguntaAtual = QUESTIONS[idx];
   const totalPerguntas = QUESTIONS.length;
 
+  // FUNÇÃO DE MÁSCARA ADICIONADA AQUI
+  const aplicarMascaraAltura = (texto: string) => {
+    let valor = texto.replace(/\D/g, ""); 
+    if (valor.length > 1) {
+      valor = valor.replace(/^(\d)(\d)/, "$1,$2");
+    }
+    return valor;
+  };
+
   useEffect(() => {
     const qid = QUESTIONS[idx].id;
     setValorAtual(String(acumulador[qid] ?? ""));
@@ -94,8 +103,6 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
     };
 
     try {
-      // CORREÇÃO: Usa setDoc com { merge: true }
-      // Ele vai criar o documento com o email se não existir!
       await setDoc(doc(db, "users", user.email as string), {
         hasCompletedFirstDiet: true,
         currentDiet: newDiet
@@ -183,11 +190,26 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
 
             {(perguntaAtual.tipo === "number" || perguntaAtual.tipo === "altura_mask" || perguntaAtual.tipo === "text") && (
               <View>
+                {/* TEXTINPUT ATUALIZADO (onChangeText e maxLength) */}
                 <TextInput
                   value={valorAtual}
-                  onChangeText={setValorAtual}
+                  onChangeText={(texto) => {
+                    if (perguntaAtual.tipo === "altura_mask") {
+                      setValorAtual(aplicarMascaraAltura(texto));
+                    } else {
+                      setValorAtual(texto);
+                    }
+                  }}
                   multiline={perguntaAtual.tipo === "text"}
-                  keyboardType={perguntaAtual.tipo === "number" ? "numeric" : perguntaAtual.tipo === "altura_mask" ? "decimal-pad" : "default"}
+                  maxLength={
+                    perguntaAtual.id === "idade" ? 3 : 
+                    perguntaAtual.id === "peso" ? 3 : 
+                    perguntaAtual.id === "altura" ? 4 : 200
+                  }
+                  keyboardType={
+                    perguntaAtual.tipo === "number" ? "numeric" : 
+                    perguntaAtual.tipo === "altura_mask" ? "decimal-pad" : "default"
+                  }
                   className="border border-black/15 dark:border-white/15 rounded-xl px-3 py-2.5 bg-white dark:bg-slate-700 text-[#05121a] dark:text-white mb-3 font-bold"
                   placeholder={perguntaAtual.tipo === "altura_mask" ? "1,75" : ""}
                   placeholderTextColor={theme === 'dark' ? '#94a3b8' : '#64748b'}
