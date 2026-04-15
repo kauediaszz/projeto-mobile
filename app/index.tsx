@@ -12,13 +12,13 @@ import {
     View,
 } from "react-native";
 
+import Particles from "@/components/particles"; // Importando suas partículas existentes
 import { useAuth } from "@/contexts/auth-context";
 import { LoginForm } from "./login";
-import Particles from "@/components/particles"; // Importando suas partículas existentes
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, initializing } = useAuth();
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollView | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -28,6 +28,10 @@ export default function OnboardingScreen() {
       router.replace("/app" as any);
     }
   }, [user, router]);
+
+  if (initializing) {
+    return null;
+  }
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const page = Math.round(event.nativeEvent.contentOffset.x / width);

@@ -31,6 +31,7 @@ User data:
 `;
 }
 
+// NOVA FUNÇÃO AQUI: Forçando a IA a retornar JSON estruturado
 function buildDietPrompt(dados: GeminiInput) {
   const sexo = String(dados.sexo ?? 'nao informado');
   const idade = String(dados.idade ?? 'nao informado');
@@ -40,7 +41,31 @@ function buildDietPrompt(dados: GeminiInput) {
   const objetivo = String(dados.objetivo ?? 'nao informado');
   const preferencias = String(dados.preferencias ?? 'nao informado');
 
-  return `You are a health assistant. Use the user data below to calculate BMI, estimate TDEE and generate a one-day meal plan focused on the goal. Return all results as plain text, no JSON.
+  return `Você é um nutricionista e assistente de saúde. Use os dados abaixo para calcular o IMC, estimar o TDEE (Gasto Energético Total Diário) e gerar um plano alimentar de UM DIA focado no objetivo.
+  
+RETORNE APENAS UM JSON VÁLIDO. Não adicione nenhuma formatação markdown (como \`\`\`json) e não adicione textos fora do JSON. Use a estrutura exata abaixo:
+
+{
+  "avaliacao": {
+    "imc": "22.5",
+    "tdee": "2100",
+    "texto": "Sua avaliação nutricional detalhada aqui..."
+  },
+  "refeicoes": [
+    {
+      "nome": "Café da Manhã",
+      "icone": "☕",
+      "itens": [
+        { "nome": "Ovos Mexidos", "detalhe": "3 unidades", "icone": "🥚" },
+        { "nome": "Pão integral", "detalhe": "2 fatias (60g)", "icone": "🍞" }
+      ]
+    }
+  ],
+  "notas": [
+    "Beber pelo menos 3L de água por dia.",
+    "Pode substituir o frango por patinho moído."
+  ]
+}
 
 User data:
 - Sex: ${sexo}

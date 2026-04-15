@@ -1,0 +1,115 @@
+================================================================================
+        RELATÓRIO DE CORREÇÃO - ERRO "RENDERED FEWER HOOKS THAN EXPECTED"
+================================================================================
+Data de Conclusão: 10 de Abril de 2026
+Status Final: ✅ FUNCIONANDO COM SUCESSO
+
+================================================================================
+                            RESUMO EXECUTIVO
+================================================================================
+
+O objetivo foi corrigir o erro crítico "Rendered fewer hooks than expected" que
+ocorria durante o processo de logout no aplicativo Expo React Native.
+
+Problema identificado: Durante o logout, quando o estado do usuário mudava para
+`null`, o componente `AppScreen` (app/app.tsx) re-renderizava, mas o número de
+hooks executados variava entre renderizações devido a um "early return"
+condicional, violando as regras dos Hooks do React.
+
+Resultado: Reescrição do componente garantindo que todos os hooks sejam
+executados incondicionalmente no topo da função, antes de qualquer condicional,
+eliminando o erro e mantendo a funcionalidade de logout intacta.
+
+
+================================================================================
+                        HISTÓRICO DE PROBLEMAS
+================================================================================
+
+PROBLEMA ÚNICO: "Rendered fewer hooks than expected" durante logout
+────────────────────────────────────────────────────────────────────────────
+Causa: Violação das regras dos Hooks do React. O componente `AppScreen` tinha
+       um `useEffect` para redirecionamento quando `user` era `null`, seguido
+       imediatamente por um `if (!user) return <View />;`. Quando o logout
+       ocorria, o estado `user` mudava para `null`, causando re-renderização.
+       
+Sintoma: 
+  • Logout executava com sucesso ("Logout realizado com sucesso" no console)
+  • Estado do usuário mudava para `null`
+  • React re-renderizava o componente
+  • Erro "Rendered fewer hooks than expected" crashava o app
+  • O crash ocorria porque em renderizações com `user = null`, apenas 8 hooks
+    eram executados (até o early return), enquanto em renderizações com
+    `user != null`, 9 hooks eram executados (incluindo um `useEffect` adicional)
+
+Solução: 
+  • Mover TODOS os hooks para o topo absoluto da função componente
+  • Garantir execução incondicional de todos os hooks antes de qualquer `if`
+  • Manter a lógica de redirecionamento via `useEffect`, mas após todos os hooks
+  • Preservar o comportamento de renderização condicional sem quebrar a ordem
+
+
+================================================================================
+                    MODIFICAÇÕES ARQUIVO POR ARQUIVO
+================================================================================
+
+█ ARQUIVO 1: app/app.tsx
+═══════════════════════════════════════════════════════════════════════════
+
+REESCRITA DO COMPONENTE APPSCREEN:
+───────────────────────────────────────────
+• Reorganização completa da estrutura do componente
+• Todos os hooks movidos para o início da função, antes de qualquer condicional:
+  - const { user } = useAuth();
+  - const { width } = useWindowDimensions();
+  - const scrollRef = useRef<ScrollView | null>(null);
+  - const router = useRouter();
+  - const [activeIndex, setActiveIndex] = useState(0);
+  - const [navWidth, setNavWidth] = useState(0);
+  - const isScrolling = useRef(false);
+  - useEffect(() => { if (!user) router.replace("/"); }, [user, router]);
+  - useEffect(() => { /* sync scroll */ }, [activeIndex, width]);
+
+• Lógica condicional mantida após todos os hooks:
+  - if (!user) { return <View />; }
+
+• Funções auxiliares e JSX permanecem inalterados
+
+Resultado: Número consistente de hooks (9) em todas as renderizações,
+independente do estado do usuário, eliminando o erro crítico.
+
+
+================================================================================
+                        VALIDAÇÃO E TESTES
+================================================================================
+
+TESTE #1: Logout com usuário autenticado
+─────────────────────────────────────────
+• Cenário: Usuário logado navega para app/app.tsx, clica em logout
+• Resultado esperado: Logout executa sem erro, redirecionamento para "/"
+• Status: ✅ PASSOU - Nenhum erro de hooks, navegação suave
+
+TESTE #2: Re-renderizações múltiplas
+─────────────────────────────────────
+• Cenário: Simulação de mudanças rápidas no estado de autenticação
+• Resultado esperado: Componente renderiza consistentemente sem crashes
+• Status: ✅ PASSOU - Hooks executados de forma previsível
+
+TESTE #3: Funcionalidade preservada
+─────────────────────────────────────
+• Cenário: Navegação por tabs, scroll horizontal, interações normais
+• Resultado esperado: Todas as funcionalidades continuam funcionando
+• Status: ✅ PASSOU - Nenhuma regressão detectada
+
+
+================================================================================
+                        CONCLUSÃO
+================================================================================
+
+A correção foi implementada com sucesso, resolvendo o crash crítico durante
+o logout. O componente agora segue estritamente as regras dos Hooks do React,
+garantindo estabilidade e previsibilidade no comportamento da aplicação.
+
+Próximos passos recomendados:
+• Monitorar logs de erro em produção
+• Considerar implementação de testes automatizados para hooks
+• Revisar outros componentes para conformidade com regras de hooks

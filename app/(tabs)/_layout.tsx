@@ -1,14 +1,21 @@
-import { Redirect, Slot } from "expo-router";
-import React from "react";
+import { useRouter } from "expo-router";
+import React, { useEffect } from "react";
 import { View } from "react-native";
 
 import { useAuth } from "@/contexts/auth-context";
 
 export default function TabLayout() {
   const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [user, router]);
 
   if (!user) {
-    return <Redirect href="/login" />;
+    return <View />;
   }
 
   return (

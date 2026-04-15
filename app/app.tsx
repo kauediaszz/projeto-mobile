@@ -1,4 +1,5 @@
-import { Redirect } from "expo-router";
+﻿// app/app.tsx
+import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   LayoutChangeEvent,
@@ -13,14 +14,10 @@ import {
 
 import TypingText from "@/components/typing-text";
 import { useAuth } from "@/contexts/auth-context";
+import { useDiet } from "@/contexts/diet-context";
 import AboutScreen from "./(tabs)/about";
 import CalculationScreen from "./(tabs)/calculation";
-
-const tabs = [
-  { key: "home", label: "Home" },
-  { key: "calculation", label: "Calculation" },
-  { key: "about", label: "About" },
-];
+import DietaScreen from "./(tabs)/dieta";
 
 function HomePanel({ user }: { user: any | null }) {
   const displayName = user?.displayName ?? "Usuário";
@@ -52,9 +49,9 @@ function HomePanel({ user }: { user: any | null }) {
         </Text>
         <View className="space-y-3">
           <View className="rounded-3xl bg-slate-50 p-4 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-            <Text className="text-slate-700 dark:text-slate-200 font-semibold">Próxima ação</Text>
+            <Text className="text-slate-700 dark:text-slate-200 font-semibold">Dica do dia</Text>
             <Text className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Vá para Calculation para inserir seus dados.
+              Mantenha-se hidratado e siga o seu plano alimentar para melhores resultados.
             </Text>
           </View>
         </View>
@@ -64,27 +61,49 @@ function HomePanel({ user }: { user: any | null }) {
 }
 
 export default function AppScreen() {
+  const { user } = useAuth();
+  const { hasCompletedFirstDiet } = useDiet();
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollView | null>(null);
-  const { user } = useAuth();
+  const router = useRouter();
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [navWidth, setNavWidth] = useState(0);
-
   const isScrolling = useRef(false);
 
-  if (!user) {
-    return <Redirect href="/" />;
-  }
+  // Abas dinâmicas
+  const tabs = hasCompletedFirstDiet
+    ? [
+        { key: "home", label: "Home" },
+        { key: "dieta", label: "Dieta" },
+        { key: "about", label: "About" },
+      ]
+    : [
+        { key: "home", label: "Home" },
+        { key: "calculation", label: "Calculation" },
+        { key: "about", label: "About" },
+      ];
 
-  // 👉 NAV CLICK
+  useEffect(() => {
+    if (!user) {
+      router.replace("/");
+    }
+  }, [user, router]);
+
+  useEffect(() => {
+    if (!isScrolling.current) return;
+    scrollRef.current?.scrollTo({ x: width * activeIndex, animated: true });
+    isScrolling.current = false;
+  }, [activeIndex, width]);
+
+  if (!user) return <View />;
+
   const handleTabPress = (index: number) => {
     isScrolling.current = true;
     setActiveIndex(index);
     scrollRef.current?.scrollTo({ x: width * index, animated: true });
   };
 
-  // 👉 SWIPE
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / width);
@@ -93,14 +112,6 @@ export default function AppScreen() {
       setActiveIndex(index);
     }
   };
-
-  // 👉 SYNC FINAL
-  useEffect(() => {
-    if (!isScrolling.current) return;
-
-    scrollRef.current?.scrollTo({ x: width * activeIndex, animated: true });
-    isScrolling.current = false;
-  }, [activeIndex, width]);
 
   const handleNavLayout = (event: LayoutChangeEvent) => {
     setNavWidth(event.nativeEvent.layout.width);
@@ -112,10 +123,9 @@ export default function AppScreen() {
     <View className="flex-1 bg-white dark:bg-slate-900">
       <View className="pt-12 px-4">
         <Text className="text-3xl font-black text-slate-900 dark:text-white mb-4">
-          Bem-vindo, {user?.displayName ?? "Usuário"}
+          Dieta I.A.
         </Text>
 
-        {/* NAVBAR */}
         <View
           className="mx-auto w-full rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-1 relative overflow-hidden"
           onLayout={handleNavLayout}
@@ -133,7 +143,6 @@ export default function AppScreen() {
           <View className="flex-row">
             {tabs.map((screen, index) => {
               const active = index === activeIndex;
-
               return (
                 <TouchableOpacity
                   key={screen.key}
@@ -156,7 +165,6 @@ export default function AppScreen() {
         </View>
       </View>
 
-      {/* SWIPE CONTAINER */}
       <ScrollView
         horizontal
         pagingEnabled
@@ -171,7 +179,7 @@ export default function AppScreen() {
         </View>
 
         <View style={{ width }}>
-          <CalculationScreen />
+          {hasCompletedFirstDiet ? <DietaScreen /> : <CalculationScreen />}
         </View>
 
         <View style={{ width }}>
