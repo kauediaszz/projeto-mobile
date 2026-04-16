@@ -31,6 +31,7 @@ User data:
 `;
 }
 
+// NOVA FUNÇÃO AQUI: Forçando a IA a retornar JSON estruturado
 function buildDietPrompt(dados: GeminiInput) {
   const sexo = String(dados.sexo ?? 'não informado');
   const idade = String(dados.idade ?? 'não informado');
@@ -40,8 +41,36 @@ function buildDietPrompt(dados: GeminiInput) {
   const objetivo = String(dados.objetivo ?? 'não informado');
   const preferencias = String(dados.preferencias ?? 'não informado');
 
+<<<<<<< HEAD
   return `Você é um Nutricionista Esportivo experiente.
   Crie uma estratégia nutricional com base nos dados do usuário.
+=======
+  return `Você é um nutricionista e assistente de saúde. Use os dados abaixo para calcular o IMC, estimar o TDEE (Gasto Energético Total Diário) e gerar um plano alimentar de UM DIA focado no objetivo.
+  
+RETORNE APENAS UM JSON VÁLIDO. Não adicione nenhuma formatação markdown (como \`\`\`json) e não adicione textos fora do JSON. Use a estrutura exata abaixo:
+
+{
+  "avaliacao": {
+    "imc": "22.5",
+    "tdee": "2100",
+    "texto": "Sua avaliação nutricional detalhada aqui..."
+  },
+  "refeicoes": [
+    {
+      "nome": "Café da Manhã",
+      "icone": "☕",
+      "itens": [
+        { "nome": "Ovos Mexidos", "detalhe": "3 unidades", "icone": "🥚" },
+        { "nome": "Pão integral", "detalhe": "2 fatias (60g)", "icone": "🍞" }
+      ]
+    }
+  ],
+  "notas": [
+    "Beber pelo menos 3L de água por dia.",
+    "Pode substituir o frango por patinho moído."
+  ]
+}
+>>>>>>> 5a700c5b8d182ad44346bbc93c3848423579a673
 
 DADOS DO UTILIZADOR:
 - Sexo: ${sexo}
