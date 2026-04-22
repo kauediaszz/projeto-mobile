@@ -30,11 +30,11 @@ const QUESTIONS = [
 function OptionButton({ label, onPress }: { label: string; onPress: () => void }) {
   return (
     <TouchableOpacity
-      className="bg-[#ff0054]/10 border border-[#ff0054]/25 py-3 px-3 rounded-xl mb-3"
+      className="bg-purple-600/10 border border-purple-600/30 py-3 px-3 rounded-xl mb-3"
       onPress={onPress}
       activeOpacity={0.9}
     >
-      <Text className="font-black text-[#ff0054] text-center">{label}</Text>
+      <Text className="font-bold text-purple-600 dark:text-[#9b7bf7] text-center">{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -177,7 +177,7 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
           </View>
 
           <View className="bg-white/95 dark:bg-slate-800 rounded-2xl p-3.5 shadow-sm border border-transparent dark:border-white/5">
-            <Text className="font-black text-[#ff0054] mb-2.5">Pergunta {idx + 1} de {totalPerguntas}</Text>
+            <Text className="font-black text-[#9b7bf7] mb-2.5">Pergunta {idx + 1} de {totalPerguntas}</Text>
             <Text className="text-lg font-black mb-3 text-[#05121a] dark:text-white">{perguntaAtual.pergunta}</Text>
 
             {perguntaAtual.tipo === "select" && (
@@ -220,7 +220,7 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
                     <Text className="font-black text-[#05121a] dark:text-white">Voltar</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    className={`flex-1 bg-[#ff0054] py-3 rounded-xl items-center ${isProcessing ? 'opacity-50' : ''}`}
+                    className={`flex-1 bg-purple-600 py-3 rounded-xl items-center ${isProcessing ? 'opacity-50' : ''}`}
                     onPress={handleNext}
                     disabled={isProcessing}
                     activeOpacity={0.9}
@@ -250,7 +250,7 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
             />
             <TouchableOpacity 
               onPress={saveDietToFirebase}
-              className="bg-[#ff0054] p-4 rounded-2xl items-center"
+              className="bg-purple-600 p-4 rounded-2xl items-center"
               disabled={isSaving}
             >
               {isSaving ? <ActivityIndicator color="#fff"/> : <Text className="text-white font-black text-lg">Salvar Dieta</Text>}
