@@ -5,6 +5,7 @@ import { updateProfile } from "firebase/auth";
 
 import { useAuth } from "@/contexts/auth-context";
 import { useAppTheme } from "@/contexts/theme-context";
+import { auth } from "@/firebaseConfig"; // Adicionada a importação do auth
 
 export default function PreferencesScreen() {
   const router = useRouter();
@@ -16,16 +17,19 @@ export default function PreferencesScreen() {
   const [feedback, setFeedback] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   const handleUpdateProfile = async () => {
-    if (!user) return;
+    // Usando auth.currentUser ao invés do user do contexto
+    if (!auth.currentUser) return; 
     
     setLoading(true);
     setFeedback(null);
 
     try {
-      await updateProfile(user, { displayName });
+      // Passando auth.currentUser para a função do Firebase
+      await updateProfile(auth.currentUser, { displayName });
       setFeedback({ text: "Tudo certo! Dados atualizados.", type: "success" });
       setTimeout(() => setFeedback(null), 3000);
     } catch (error) {
+      console.error(error); // Adicionado para ajudar a debugar se houver outro problema
       setFeedback({ text: "Deu ruim! Tente novamente.", type: "error" });
     } finally {
       setLoading(false);
