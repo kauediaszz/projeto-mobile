@@ -11,7 +11,7 @@ function pickRandom(list: string[]) {
 
 export default function Particles({ count = 40 }: ParticlesProps) {
   const emojis = useMemo(
-    () => ['🥗', '💧', '🏃', '❤️', '🥤', '🍎', '🏋️', '📅', '✅', '⏱️'],
+    () => ['🥗', '🏃', '🥬', '🍎', '🏋️', '📅', '🥦'],
     []
   );
 
