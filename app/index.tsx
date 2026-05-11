@@ -84,10 +84,10 @@ export default function OnboardingScreen() {
             
             <View className="mt-8 rounded-3xl bg-slate-100 dark:bg-slate-800 p-5 border border-slate-200 dark:border-slate-700">
               <Text className="text-base font-semibold text-slate-900 dark:text-white mb-2">
-                Arraste para a esquerda para entrar
+                IA + Saúde em um só lugar
               </Text>
               <Text className="text-slate-500 dark:text-slate-400 leading-6">
-                Use o gesto de swipe para avançar para a tela de login e começar o acesso.
+              Faça o seu cadastro e receba planos alimentares personalizados para seus objetivos.
               </Text>
             </View>
           </View>
