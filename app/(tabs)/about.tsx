@@ -1,39 +1,82 @@
 // app/(tabs)/about.tsx
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import Particles from "@/components/particles";
 import { useAuth } from "@/contexts/auth-context";
 
-function InfoCard({
+// 1. Componente de Card Principal (Seção) agora Expansível (Accordion)
+function SectionCard({
   title,
   emoji,
   children,
-  variant,
 }: {
   title: string;
   emoji: string;
   children: React.ReactNode;
-  variant: "emerald" | "cyan" | "teal";
 }) {
-  // Dicionário de cores para as bordas
-  const borderColors = {
-    emerald: "border-[#10b981]",
-    cyan: "border-[#22d3ee]",
-    teal: "border-[#2dd4bf]",
-  };
+  // Estado para controlar se o card está aberto ou fechado
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <View
-      className={`border-2 rounded-2xl p-3.5 mb-3.5 bg-white dark:bg-slate-800 ${borderColors[variant]} shadow-sm`}
-    >
-      <View className="flex-row items-center mb-2">
-        {/* Restaurei o Emoji e o Título que haviam sumido! */}
-        <Text className="text-[22px] mr-2.5">{emoji}</Text>
-        <Text className="text-base font-black dark:text-white">{title}</Text>
+    <View className="rounded-[32px] bg-white dark:bg-[#1c1f2b] border border-slate-200 dark:border-white/5 mb-5 shadow-sm dark:shadow-none overflow-hidden">
+      {/* Cabeçalho Clicável */}
+      <TouchableOpacity
+        onPress={() => setIsExpanded(!isExpanded)}
+        activeOpacity={0.7}
+        className="flex-row items-center p-6"
+      >
+        <View className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full items-center justify-center mr-3">
+          <Text className="text-[20px]">{emoji}</Text>
+        </View>
+        <Text className="text-xl font-black text-slate-900 dark:text-white flex-1">
+          {title}
+        </Text>
+        
+        {/* Ícone de + ou - para indicar expansão */}
+        <View className="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-800/50 items-center justify-center border border-slate-100 dark:border-slate-700/50">
+          <Text className="text-slate-500 dark:text-slate-400 text-lg font-bold mt-[-2px]">
+            {isExpanded ? "−" : "+"}
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* Conteúdo que só aparece se estiver expandido */}
+      {isExpanded && (
+        <View className="px-6 pb-6 pt-2 border-t border-slate-100 dark:border-white/5">
+          {children}
+        </View>
+      )}
+    </View>
+  );
+}
+
+// 2. Componente para as fórmulas matemáticas dentro do Card de Cálculos
+function CalcItem({
+  title,
+  formula,
+  desc,
+  colorClass,
+}: {
+  title: string;
+  formula: string;
+  desc: string;
+  colorClass: string;
+}) {
+  return (
+    <View className="mb-6">
+      <Text className="text-[15px] font-black text-slate-800 dark:text-white mb-1.5">
+        {title}
+      </Text>
+      <Text className="text-[13px] text-slate-500 dark:text-slate-400 mb-3 leading-5">
+        {desc}
+      </Text>
+      <View className={`rounded-2xl p-3.5 bg-slate-50 dark:bg-slate-800/50 border-l-4 ${colorClass}`}>
+        <Text className="font-bold text-slate-700 dark:text-slate-300 text-[13px] leading-5">
+          {formula}
+        </Text>
       </View>
-      {children}
     </View>
   );
 }
@@ -48,105 +91,113 @@ export default function AboutScreen() {
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
     } finally {
-      // Sempre redirecionar, mesmo se houver erro no logout
       router.replace("/");
     }
   };
 
   return (
     <ScrollView
-      className="bg-white dark:bg-slate-900"
-      contentContainerClassName="pb-5"
+      className="flex-1 bg-slate-50 dark:bg-[#101217]"
+      contentContainerClassName="pb-10 pt-4 px-4"
       showsVerticalScrollIndicator={false}
     >
       {/* Bloco do cabeçalho com partículas */}
-      <View className="m-2.5 rounded-[18px] px-4 pt-2 pb-4 bg-[#00ffd5]/20 dark:bg-[#00ffd5]/10">
-        <Particles count={45} />
-        <View className="mt-1.5">
-          <Text className="text-[22px] font-black text-[#06131a] dark:text-white mb-2">
-            Como Funciona a Calculadora
+      <View className="rounded-[32px] px-6 pt-4 pb-6 bg-[#00ffd5]/20 dark:bg-[#00ffd5]/10 mb-6 overflow-hidden">
+        <Particles count={35} />
+        <View className="mt-2">
+          <Text className="text-[24px] font-black text-[#06131a] dark:text-white mb-2">
+            Como Funciona?
           </Text>
-          <Text className="text-[#24323f] dark:text-slate-300 leading-5">
-            Entenda os cálculos e métricas utilizadas para suas recomendações personalizadas
+          <Text className="text-[#24323f] dark:text-slate-300 leading-6 font-medium">
+            Entenda a ciência e a inteligência por trás das suas recomendações personalizadas.
           </Text>
         </View>
       </View>
 
-      <View className="px-4 pt-2.5">
-        
-        {/* O ThemeToggle foi totalmente removido daqui! */}
-
-        <InfoCard
+      {/* SEÇÃO 1: CÁLCULOS NUTRICIONAIS */}
+      <SectionCard title="Cálculos Nutricionais" emoji="🧮">
+        <CalcItem
           title="Taxa Metabólica Basal (TMB)"
-          emoji="❤️"
-          variant="emerald"
-        >
-          <Text className="text-[#24323f] dark:text-slate-300 leading-5">
-            A TMB representa a quantidade de calorias que seu corpo precisa para
-            manter suas funções vitais em repouso.
-          </Text>
-          <View className="rounded-xl p-3 bg-black/5 dark:bg-white/5 mt-2 border-l-4 border-[#10b981]">
-            <Text className="font-black mb-1.5 dark:text-white">Fórmula de Harris-Benedict</Text>
-            <Text className="text-[#111827] dark:text-slate-200 mt-1 font-bold">Para Homens:</Text>
-            <Text className="font-bold text-[#0f172a] dark:text-slate-400 mt-1">
-              TMB = 88.362 + (13.397 x peso) + (4.799 x altura) - (5.677 x idade)
-            </Text>
-          </View>
-        </InfoCard>
-
-        <InfoCard
+          desc="A quantidade de calorias que seu corpo precisa para manter as funções vitais em repouso."
+          formula="H: 88.36 + (13.39 × Peso) + (4.79 × Altura) - (5.67 × Idade)"
+          colorClass="border-[#10b981]"
+        />
+        
+        <CalcItem
           title="Gasto Energético (TDEE)"
-          emoji="📈"
-          variant="cyan"
-        >
-          <View className="rounded-xl p-3 bg-black/5 dark:bg-white/5 mt-2 border-l-4 border-[#22d3ee]">
-            <Text className="font-bold text-[#0f172a] dark:text-slate-400 mt-1">
-              TDEE = TMB x Fator de Atividade
-            </Text>
-          </View>
-        </InfoCard>
-
-        <InfoCard
+          desc="Seu gasto calórico diário total baseado na sua rotina e exercícios."
+          formula="TDEE = TMB × Fator de Atividade"
+          colorClass="border-[#3b82f6]"
+        />
+        
+        <CalcItem
           title="Índice de Massa Corporal (IMC)"
-          emoji="📏"
-          variant="teal"
-        >
-          <View className="rounded-xl p-3 bg-black/5 dark:bg-white/5 mt-2 border-l-4 border-[#2dd4bf]">
-            <Text className="font-bold text-[#0f172a] dark:text-slate-400 mt-1">
-              IMC = peso (kg) ÷ altura² (m)
+          desc="Uma relação matemática entre seu peso e sua altura."
+          formula="IMC = Peso (kg) ÷ Altura² (m)"
+          colorClass="border-[#8b5cf6]"
+        />
+      </SectionCard>
+
+      {/* SEÇÃO 2: O AGENTE IA */}
+      <SectionCard title="Nosso Agente de Nutrição" emoji="🤖">
+        <Text className="text-slate-600 dark:text-slate-300 leading-6 font-medium">
+          Nosso agente é impulsionado por inteligência artificial (Google Gemini) e altamente treinado para fornecer recomendações personalizadas, baseadas em dados científicos e nas suas preferências, garantindo um plano alimentar eficaz e sustentável.
+        </Text>
+      </SectionCard>
+
+      {/* SEÇÃO 3: CRIADORES */}
+      <SectionCard title="Criadores" emoji="👨‍💻">
+        <View className="flex-row items-center">
+          <View className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center mr-4 border border-slate-200 dark:border-slate-700">
+            <Text className="text-2xl">🚀</Text>
+          </View>
+          <View className="flex-1">
+            <Text className="font-black text-slate-900 dark:text-white text-[16px] mb-1">
+              Kauê Dias e Lucas Holanda
+            </Text>
+            <Text className="text-slate-500 dark:text-slate-400 text-[13px] font-medium">
+              Desenvolvido com dedicação para transformar sua saúde através da tecnologia.
             </Text>
           </View>
-        </InfoCard>
+        </View>
+      </SectionCard>
 
-        <View className="p-4 rounded-2xl bg-[#10b981]/10 border border-[#10b981]/35 mt-1.5">
-          <Text className="text-lg font-black mb-2 dark:text-white">Importante Lembrar</Text>
-          <Text className="text-[#0f766e] dark:text-emerald-400 font-bold leading-relaxed">
-            • Sempre consulte um nutricionista antes de iniciar qualquer dieta.
+      {/* AVISO IMPORTANTE (Deixei aberto por padrão pois é um aviso médico) */}
+      <View className="p-5 rounded-[24px] bg-[#10b981]/10 border border-[#10b981]/30 mb-6">
+        <View className="flex-row items-center mb-2">
+          <Text className="text-lg mr-2">⚠️</Text>
+          <Text className="text-[16px] font-black text-emerald-800 dark:text-emerald-400">
+            Aviso Importante
           </Text>
         </View>
+        <Text className="text-emerald-700 dark:text-emerald-300/80 font-medium leading-5">
+          Sempre consulte um médico ou nutricionista profissional antes de iniciar qualquer dieta rigorosa ou mudança radical de hábitos.
+        </Text>
+      </View>
 
-        {/* Botão Preferências */}
+      {/* BOTÕES DE AÇÃO */}
+      <View className="mb-8">
         <TouchableOpacity
           onPress={() => router.push("/preferences")}
-          className="rounded-2xl bg-slate-900 dark:bg-slate-100 px-4 py-3 items-center mt-8 mb-3"
+          className="rounded-full bg-slate-200 dark:bg-slate-800 py-[18px] items-center mb-3"
           activeOpacity={0.85}
         >
-          <Text className="font-bold text-white dark:text-slate-900">
-            ⚙️ Preferências
+          <Text className="font-black text-slate-900 dark:text-white text-[15px]">
+            ⚙️ Preferências no App
           </Text>
         </TouchableOpacity>
 
-        {/* Botão Sair da Conta */}
         <TouchableOpacity
           onPress={handleLogout}
-          className="rounded-2xl bg-red-500 px-4 py-3 items-center mb-4"
+          className="rounded-full bg-red-100 dark:bg-red-500/10 py-[18px] items-center border border-red-200 dark:border-red-500/20"
           activeOpacity={0.85}
         >
-          <Text className="font-bold text-white">
+          <Text className="font-black text-red-600 dark:text-red-400 text-[15px]">
             🚪 Sair da Conta
           </Text>
         </TouchableOpacity>
       </View>
+
     </ScrollView>
   );
 }

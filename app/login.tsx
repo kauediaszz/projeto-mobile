@@ -1,12 +1,13 @@
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { useAuth } from "@/contexts/auth-context";
@@ -37,6 +38,7 @@ const getFirebaseErrorMessage = (error: unknown) => {
 };
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
+  const router = useRouter();
   const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [username, setUsername] = useState("");
@@ -184,6 +186,13 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           secureTextEntry
           className="mb-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 px-4 py-3 text-slate-900 dark:text-white"
         />
+        <TouchableOpacity
+          onPress={() => router.push("/admin/login")}
+          activeOpacity={0.7}
+        >
+          <Text className="text-slate-500 dark:text-slate-400 mb-2 underline">Sou admin</Text>
+        </TouchableOpacity>
+  
 
         {error ? (
           <Text className="text-red-500 mb-4">{error}</Text>
@@ -222,9 +231,14 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-white dark:bg-slate-900"
     >
-      <View className="flex-1 justify-center px-6">
-        <LoginForm onSuccess={() => router.replace("/app" as any)} />
-      </View>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View className="flex-1 justify-center px-6">
+          <LoginForm onSuccess={() => router.replace("/app" as any)} />
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
