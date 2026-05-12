@@ -46,5 +46,7 @@ app-example
 # Expo config and key files
 app.json
 
+firebaseConfig.ts
 
 
+# escondendo arquivos de configuração e chaves sensíveis
