@@ -42,3 +42,9 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Expo config and key files
+app.json
+
+
+
