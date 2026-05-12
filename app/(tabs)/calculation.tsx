@@ -2,7 +2,9 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -163,11 +165,16 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
 
   return (
     <>
-      <ScrollView
-        className="bg-white dark:bg-slate-900 flex-1"
-        contentContainerClassName="pb-8"
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1"
       >
+        <ScrollView
+          className="bg-white dark:bg-slate-900 flex-1"
+          contentContainerClassName="pb-8"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         <View className="px-3.5 pt-3">
           <View className="bg-white/85 dark:bg-slate-800 rounded-2xl p-3.5 mb-3.5 border border-transparent dark:border-white/5">
             <Text className="font-black mb-3 text-[#05121a] dark:text-white">Vamos criar sua Dieta</Text>
@@ -235,11 +242,16 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
           </View>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Modal de Nome da Dieta */}
       <Modal visible={showModal} transparent animationType="fade">
-        <View className="flex-1 justify-center items-center bg-black/60 px-6">
-          <View className="bg-white dark:bg-slate-800 p-6 rounded-[32px] w-full border border-slate-200 dark:border-slate-700">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1"
+        >
+          <View className="flex-1 justify-center items-center bg-black/60 px-6">
+            <View className="bg-white dark:bg-slate-800 p-6 rounded-[32px] w-full border border-slate-200 dark:border-slate-700">
             <Text className="text-2xl font-black mb-4 text-slate-900 dark:text-white">Qual será o nome da sua dieta?</Text>
             <TextInput 
               className="bg-slate-100 dark:bg-slate-900 p-4 rounded-2xl mb-6 text-slate-900 dark:text-white font-bold border border-slate-200 dark:border-slate-700"
@@ -255,8 +267,9 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
             >
               {isSaving ? <ActivityIndicator color="#fff"/> : <Text className="text-white font-black text-lg">Salvar Dieta</Text>}
             </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );

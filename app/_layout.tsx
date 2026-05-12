@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import "../global.css";
 
+import { AdminAuthProvider } from "@/contexts/admin-auth-context";
 import { AuthProvider } from "@/contexts/auth-context";
 import { DietProvider } from "@/contexts/diet-context";
 import { AppThemeProvider, useAppTheme } from "@/contexts/theme-context";
@@ -12,7 +13,9 @@ export default function RootLayout() {
   return (
     <AppThemeProvider>
       <AuthProvider>
-        <MainLayout />
+        <AdminAuthProvider>
+          <MainLayout />
+        </AdminAuthProvider>
       </AuthProvider>
     </AppThemeProvider>
   );

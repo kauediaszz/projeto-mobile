@@ -12,9 +12,9 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.kauedias.dietaia",
+      "package": "com.kauedias.projetofacul",
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/logo.png"
       },
       "edgeToEdgeEnabled": true,
@@ -22,7 +22,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/logo.png"
     },
     "plugins": [
       "expo-router",
@@ -44,7 +44,7 @@
       "reactCompiler": true
     },
     "extra": {
-      "GEMINI_API_KEY": "",
+      "GEMINI_API_KEY": "AIzaSyApJ8ea7r6_zanQHfGMEYh57j4ZZ32Wmq4",
       "router": {},
       "eas": {
         "projectId": "83cfd0e2-4a5d-4be1-9225-7068484d6ae3"
