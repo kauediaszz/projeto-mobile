@@ -49,3 +49,4 @@ app.json
 firebasecongig.ts
 
 
+# escondendo arquivos de configuração e chaves sensíveis
