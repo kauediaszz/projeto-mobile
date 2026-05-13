@@ -110,7 +110,6 @@ export default function DietaScreen() {
         
         {/* Top Header Placeholder */}
         <View className="flex-row justify-between items-center mb-8">
-          /// aqui podemos fazer algo legal para tirar a navbar
         </View>
 
         {/* Títulos Principais */}
