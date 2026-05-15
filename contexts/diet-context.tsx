@@ -31,6 +31,23 @@ export function DietProvider({ children }: { children: React.ReactNode }) {
   
   const [hasCompletedFirstDiet, setHasCompletedFirstDiet] = useState(false);
   const [savedDiet, setSavedDiet] = useState<DietData>(null);
+  
+  const updateMealItem = (mealIndex: number, itemIndex: number, newItem: any) => {
+    if (!resultadoFinal?.dietaIA) return;
+    
+    try {
+      const dietaAtual = JSON.parse(resultadoFinal.dietaIA);
+      
+      // Substitui o item antigo pelo novo retornado pelo Gemini
+      dietaAtual.refeicoes[mealIndex].itens[itemIndex] = newItem;
+      
+      const novaDietaString = JSON.stringify(dietaAtual);
+      setResultadoFinal(prev => prev ? { ...prev, dietaIA: novaDietaString } : null);
+      
+    } catch (error) {
+      console.error("Erro ao atualizar o alimento na dieta:", error);
+    }
+  };
 
   useEffect(() => {
     // Garante que o usuário e o e-mail existem

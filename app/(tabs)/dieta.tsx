@@ -1,10 +1,11 @@
 import { useAuth } from '@/contexts/auth-context';
 import { useDiet } from '@/contexts/diet-context';
 import { db } from '@/firebaseConfig';
+import { requestFoodSwapFromGemini } from '@/services/gemini'; // Importação adicionada
 import { useRouter } from 'expo-router';
 import { deleteField, doc, setDoc } from 'firebase/firestore';
 import React, { useMemo, useState } from 'react';
-import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native'; // ActivityIndicator e Alert adicionados
 import Svg, { Circle } from 'react-native-svg';
 
 // --- COMPONENTES AUXILIARES ---
@@ -41,28 +42,58 @@ const CircularProgress = ({ value, max, color, label }: { value: number, max: nu
   );
 };
 
-// Item com Checkbox Interativo
-const CheckboxItem = ({ item }: { item: any }) => {
+// Item com Checkbox Interativo e Substituição por IA
+const CheckboxItem = ({ item, refeicaoNome, mealIndex, itemIndex, onSwap }: any) => {
   const [checked, setChecked] = useState(false);
+  const [isSwapping, setIsSwapping] = useState(false);
+
+  const handleSwap = async () => {
+    setIsSwapping(true);
+    try {
+      const newItem = await requestFoodSwapFromGemini(item.nome, refeicaoNome);
+      onSwap(mealIndex, itemIndex, newItem);
+      setChecked(false); // Garante que o novo alimento venha desmarcado
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível carregar a substituição no momento. Tente novamente.");
+    } finally {
+      setIsSwapping(false);
+    }
+  };
+
   return (
-    <TouchableOpacity 
-      onPress={() => setChecked(!checked)}
-      activeOpacity={0.7}
-      className="flex-row items-center bg-white dark:bg-slate-800/50 p-3.5 rounded-2xl mb-2.5 border border-slate-200 dark:border-slate-700/50 shadow-sm"
-    >
-      <View className={`w-5 h-5 rounded border-2 mr-3 items-center justify-center ${checked ? 'bg-green-500 border-green-500' : 'border-slate-300 dark:border-slate-600'}`}>
-        {checked && <Text className="text-white text-xs font-black">✓</Text>}
-      </View>
-      <View className="flex-1">
-        <Text className={`font-bold text-[15px] ${checked ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
-          {item.nome}
-        </Text>
-        <Text className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">{item.detalhe}</Text>
-      </View>
-      <View className="bg-slate-50 dark:bg-slate-700 w-8 h-8 rounded-full items-center justify-center">
-        <Text className="text-sm">{item.icone}</Text>
-      </View>
-    </TouchableOpacity>
+    <View className="flex-row items-center mb-2.5">
+      {/* Botão Principal: Marca como concluído (Ocupa o espaço maior) */}
+      <TouchableOpacity 
+        onPress={() => setChecked(!checked)}
+        className="flex-row items-center flex-1 bg-white dark:bg-slate-800/50 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/50"
+      >
+        <View className={`w-5 h-5 rounded border-2 mr-3 items-center justify-center ${checked ? 'bg-green-500 border-green-500' : 'border-slate-300 dark:border-slate-600'}`}>
+          {checked && <Text className="text-white text-xs font-black">✓</Text>}
+        </View>
+        <View className="flex-1">
+          <Text className={`font-bold text-[15px] ${checked ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
+            {item.nome}
+          </Text>
+          <Text className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">{item.detalhe}</Text>
+        </View>
+        <View className="bg-slate-100 dark:bg-slate-700/50 w-10 h-10 rounded-xl items-center justify-center mr-2">
+          <Text className="text-xl">{item.icone || item.icon}</Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* Botão Secundário: Fazer a Troca com IA (Fica ao lado direito) */}
+      <TouchableOpacity 
+        onPress={handleSwap} 
+        disabled={isSwapping || checked}
+        className={`ml-2 w-12 h-full rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 justify-center items-center ${checked ? 'opacity-50' : ''}`}
+      >
+        {isSwapping ? (
+          <ActivityIndicator size="small" color="#ff0054" />
+        ) : (
+          <Text className="text-lg">🔄</Text>
+        )}
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -100,6 +131,35 @@ export default function DietaScreen() {
     }
   };
 
+  // Função para salvar o novo alimento após o usuário clicar em recarregar
+  const updateMealItem = async (mealIndex: number, itemIndex: number, newItem: any) => {
+    if (!savedDiet || !user?.email) return;
+
+    try {
+      // Clona a dieta atual para modificar com segurança
+      const cleanJson = savedDiet.texto.replace(/```json/g, '').replace(/```/g, '').trim();
+      const dietaAtual = JSON.parse(cleanJson);
+      
+      // Substitui pelo novo item da IA
+      dietaAtual.refeicoes[mealIndex].itens[itemIndex] = newItem;
+      
+      const novaDietaString = JSON.stringify(dietaAtual);
+      const novoSavedDiet = { ...savedDiet, texto: novaDietaString };
+      
+      // Atualiza o estado da tela instantaneamente
+      setSavedDiet(novoSavedDiet);
+      
+      // Salva no banco de dados para não perder caso o aplicativo seja fechado
+      await setDoc(doc(db, "users", user.email as string), {
+        currentDiet: novoSavedDiet
+      }, { merge: true });
+
+    } catch (error) {
+      console.error("Erro ao atualizar o item da dieta:", error);
+      Alert.alert("Erro", "A dieta foi gerada, mas houve um erro ao salvá-la no banco de dados.");
+    }
+  };
+
   return (
     <>
       <ScrollView 
@@ -110,7 +170,7 @@ export default function DietaScreen() {
         
         {/* Top Header Placeholder */}
         <View className="flex-row justify-between items-center mb-8">
-          /// aqui podemos fazer algo legal para tirar a navbar
+          {/* aqui podemos fazer algo legal para tirar a navbar */}
         </View>
 
         {/* Títulos Principais */}
@@ -186,11 +246,11 @@ export default function DietaScreen() {
                Nenhuma dieta ativa encontrada.
              </Text>
              <TouchableOpacity 
-                onPress={() => router.push('/isolated-calculation')} 
-                className="bg-purple-600 dark:bg-[#9b7bf7] py-[18px] rounded-full items-center w-[80%] shadow-lg shadow-purple-600/20 dark:shadow-none"
-              >
-                <Text className="text-white dark:text-[#1e1b4b] font-black text-[16px]">Criar Dieta Agora</Text>
-              </TouchableOpacity>
+               onPress={() => router.push('/isolated-calculation')} 
+               className="bg-purple-600 dark:bg-[#9b7bf7] py-[18px] rounded-full items-center w-[80%] shadow-lg shadow-purple-600/20 dark:shadow-none"
+             >
+               <Text className="text-white dark:text-[#1e1b4b] font-black text-[16px]">Criar Dieta Agora</Text>
+             </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -238,8 +298,16 @@ export default function DietaScreen() {
                   <Text className="text-lg mr-2">{refeicao.icone}</Text>
                   <Text className="font-black text-slate-800 dark:text-white text-lg">{refeicao.nome}</Text>
                 </View>
+                {/* Aqui conectamos o onSwap para atualizar o estado e salvar */}
                 {refeicao.itens.map((item: any, i: number) => (
-                  <CheckboxItem key={i} item={item} />
+                  <CheckboxItem 
+                    key={i} 
+                    item={item} 
+                    refeicaoNome={refeicao.nome}
+                    mealIndex={idx}
+                    itemIndex={i}
+                    onSwap={updateMealItem}
+                  />
                 ))}
               </View>
             ))}
@@ -269,7 +337,6 @@ export default function DietaScreen() {
           </ScrollView>
         </View>
       </Modal>
-
     </>
   );
 }

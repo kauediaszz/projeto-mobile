@@ -181,3 +181,21 @@ export async function calculateImcFromGemini(dados: GeminiInput) {
 export async function generateDietFromGemini(dados: GeminiInput) {
   return requestGemini(buildDietPrompt(dados));
 }
+
+export function buildSwapPrompt(alimentoAtual: string, refeicao: string) {
+  return `Você é um nutricionista. O usuário deseja substituir o alimento "${alimentoAtual}" na refeição "${refeicao}".
+Sugira UMA única opção de substituição que seja equivalente em macronutrientes (carboidratos, proteínas e gorduras) e calorias, para manter o padrão da dieta atual.
+RETORNE APENAS UM JSON VÁLIDO no seguinte formato, sem formatação markdown e sem textos adicionais:
+{
+  "nome": "Nome do novo alimento",
+  "detalhe": "Quantidade (ex: 2 fatias, 100g, 1 colher de sopa)",
+  "icone": "🥑"
+}`;
+}
+
+export async function requestFoodSwapFromGemini(alimentoAtual: string, refeicao: string) {
+  const prompt = buildSwapPrompt(alimentoAtual, refeicao);
+  // Reutilizamos a função requestGemini que já lida com tentativas (retries) e erros
+  const respostaTexto = await requestGemini(prompt);
+  return JSON.parse(respostaTexto);
+}
