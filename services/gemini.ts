@@ -7,7 +7,7 @@ const apiKey =
   String(Constants.expoConfig?.extra?.GEMINI_API_KEY ?? '');
 
 const GEMINI_ENDPOINT =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 function buildImcPrompt(dados: GeminiInput) {
   const sexo = String(dados.sexo ?? 'nao informado');
@@ -78,6 +78,13 @@ User data:
 `;
 }
 
+class GeminiServiceUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'GeminiServiceUnavailableError';
+  }
+}
+
 async function requestGemini(prompt: string) {
   if (!apiKey) {
     throw new Error('[Gemini] API key not configured. Check EXPO_PUBLIC_GEMINI_API_KEY or app config.');
@@ -98,6 +105,7 @@ async function requestGemini(prompt: string) {
   const maxRetries = 3;
   const backoffMultiplier = 1000; // 1 segundo em ms
   let lastError: Error | null = null;
+  let wasServiceUnavailable = false;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -119,13 +127,16 @@ async function requestGemini(prompt: string) {
 
       // Retry on 503 (Service Unavailable) or 429 (Too Many Requests)
       if (response.status === 503 || response.status === 429) {
+        wasServiceUnavailable = true;
         if (attempt < maxRetries) {
           const waitTime = Math.pow(2, attempt - 1) * backoffMultiplier; // 1s, 2s, 4s
           console.warn(`[Gemini] Attempt ${attempt} returned ${response.status}. Retrying in ${waitTime}ms...`);
           await new Promise((resolve) => setTimeout(resolve, waitTime));
           continue; // Go to next attempt
         } else {
-          throw new Error(`[Gemini] Max retries (${maxRetries}) exhausted. Last status: ${response.status} ${response.statusText}`);
+          throw new GeminiServiceUnavailableError(
+            `Serviço de IA indisponível. Tentativas: ${maxRetries}. Status: ${response.status} ${response.statusText}`
+          );
         }
       }
 
@@ -157,7 +168,10 @@ async function requestGemini(prompt: string) {
       lastError = error instanceof Error ? error : new Error(String(error));
       console.error(`[Gemini] Attempt ${attempt} failed:`, lastError.message);
 
-      if (attempt < maxRetries && (lastError.message.includes('503') || lastError.message.includes('429'))) {
+      if (lastError instanceof GeminiServiceUnavailableError) {
+        // Service unavailable error - throw immediately
+        throw lastError;
+      } else if (attempt < maxRetries && (lastError.message.includes('503') || lastError.message.includes('429'))) {
         // Will retry in next iteration
         continue;
       } else if (attempt === maxRetries) {
@@ -173,6 +187,8 @@ async function requestGemini(prompt: string) {
   // Fallback error (should not reach here)
   throw lastError || new Error('[Gemini] Unknown error after retries');
 }
+
+export { GeminiServiceUnavailableError };
 
 export async function calculateImcFromGemini(dados: GeminiInput) {
   return requestGemini(buildImcPrompt(dados));

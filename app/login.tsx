@@ -1,12 +1,14 @@
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 
@@ -45,6 +47,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const validatePassword = (value: string) => {
     const regex = /^(?=.*[0-9])(?=.*[!@\$%]).{8,16}$/;
@@ -178,14 +181,25 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         )}
 
         <Text className="text-slate-500 dark:text-slate-400 mb-2">Senha</Text>
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Sua senha"
-          placeholderTextColor="#94a3b8"
-          secureTextEntry
-          className="mb-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 px-4 py-3 text-slate-900 dark:text-white"
-        />
+        <View className="mb-6 flex-row items-center relative">
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Sua senha"
+            placeholderTextColor="#94a3b8"
+            secureTextEntry={!showPassword}
+            className="flex-1 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 px-4 py-3 text-slate-900 dark:text-white pr-12"
+          />
+          <TouchableOpacity
+            onPress={() => setShowPassword(!showPassword)}
+            className="absolute right-3"
+            activeOpacity={0.7}
+          >
+            <Text className="text-slate-500 dark:text-slate-400 text-lg font-bold">
+              {showPassword ? "👁️" : "👁️‍🗨️"}
+            </Text>
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity
           onPress={() => router.push("/admin/login")}
           activeOpacity={0.7}
@@ -229,16 +243,19 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       className="flex-1 bg-white dark:bg-slate-900"
     >
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View className="flex-1 justify-center px-6">
-          <LoginForm onSuccess={() => router.replace("/app" as any)} />
-        </View>
-      </ScrollView>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="flex-1 justify-center px-6">
+            <LoginForm onSuccess={() => router.replace("/app" as any)} />
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

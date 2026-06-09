@@ -1,22 +1,23 @@
 ﻿import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 // IMPORTANTE: Importando setDoc ao invés de updateDoc
 import { useAuth } from '@/contexts/auth-context';
 import { useDiet } from "@/contexts/diet-context";
 import { useAppTheme } from "@/contexts/theme-context";
 import { db } from '@/firebaseConfig';
-import { generateDietFromGemini } from "@/services/gemini";
+import { GeminiServiceUnavailableError, generateDietFromGemini } from "@/services/gemini";
 import { doc, setDoc } from 'firebase/firestore';
 
 const QUESTIONS = [
@@ -56,6 +57,9 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
   const [dietName, setDietName] = useState('');
   const [generatedDietText, setGeneratedDietText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const perguntaAtual = QUESTIONS[idx];
   const totalPerguntas = QUESTIONS.length;
@@ -67,6 +71,39 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
       valor = valor.replace(/^(\d)(\d)/, "$1,$2");
     }
     return valor;
+  };
+
+  const validarResposta = (tipo: string, valor: string): { valido: boolean; erro?: string } => {
+    if (tipo === "number") {
+      const num = Number(valor);
+      if (Number.isNaN(num) || num <= 0) {
+        return { valido: false, erro: "Digite um número válido" };
+      }
+      return { valido: true };
+    }
+    if (tipo === "altura_mask") {
+      if (!valor || valor.length < 3) {
+        return { valido: false, erro: "Formato inválido, use X,XX" };
+      }
+      return { valido: true };
+    }
+    if (tipo === "text" && !valor.trim()) {
+      return { valido: false, erro: "Este campo não pode estar vazio" };
+    }
+    return { valido: true };
+  };
+
+  const obterMensagemErroEspecifica = (idPergunta: string, tipo: string): string => {
+    const mensagens: Record<string, string> = {
+      sexo: "Selecione seu sexo",
+      idade: "Erro, aqui é pra preencher com sua idade",
+      peso: "Erro, aqui é pra preencher com seu peso",
+      altura: "Erro, aqui é pra preencher com sua altura",
+      atividade: "Selecione seu nível de atividade",
+      objetivo: "Selecione seu objetivo",
+      preferencias: "Informe suas preferências alimentares"
+    };
+    return mensagens[idPergunta] || "Preencha este campo corretamente";
   };
 
   useEffect(() => {
@@ -89,6 +126,38 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
 
     } catch (error) {
       console.error("Erro ao gerar dieta:", error);
+      
+      // Tratamento específico para erro 503/429 da API
+      if (error instanceof GeminiServiceUnavailableError) {
+        Alert.alert(
+          "Serviço Temporariamente Indisponível",
+          "O serviço de inteligência artificial está temporariamente indisponível no momento. Tente novamente em alguns minutos.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setIsProcessing(false);
+              },
+            },
+          ]
+        );
+        return;
+      } else {
+        // Erro genérico
+        Alert.alert(
+          "Erro ao Gerar Dieta",
+          "Ocorreu um erro ao gerar sua dieta. Tente novamente.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setIsProcessing(false);
+              },
+            },
+          ]
+        );
+        return;
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -140,18 +209,24 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
   }
 
   async function handleNext() {
+    const validacao = validarResposta(perguntaAtual.tipo, valorAtual);
+    
+    if (!validacao.valido) {
+      const mensagemEspecifica = obterMensagemErroEspecifica(perguntaAtual.id, perguntaAtual.tipo);
+      setErrorMessage(mensagemEspecifica);
+      setShowErrorModal(true);
+      return;
+    }
+
     if (perguntaAtual.tipo === "number") {
       const num = Number(valorAtual);
-      if (Number.isNaN(num) || num <= 0) return;
       await avancarComValor(num);
       return;
     }
     if (perguntaAtual.tipo === "altura_mask") {
-      if (!valorAtual || valorAtual.length < 3) return;
       await avancarComValor(valorAtual);
       return;
     }
-    if (!valorAtual.trim()) return;
     await avancarComValor(valorAtual.trim());
   }
 
@@ -167,6 +242,7 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
     <>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         className="flex-1"
       >
         <ScrollView
@@ -197,8 +273,9 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
 
             {(perguntaAtual.tipo === "number" || perguntaAtual.tipo === "altura_mask" || perguntaAtual.tipo === "text") && (
               <View>
-                {/* TEXTINPUT ATUALIZADO (onChangeText e maxLength) */}
+                {/* TEXTINPUT - Simples e Estável */}
                 <TextInput
+                  key={`input-${perguntaAtual.id}`}
                   value={valorAtual}
                   onChangeText={(texto) => {
                     if (perguntaAtual.tipo === "altura_mask") {
@@ -207,6 +284,9 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
                       setValorAtual(texto);
                     }
                   }}
+                  autoFocus={true}
+                  selectTextOnFocus={true}
+                  editable={true}
                   multiline={perguntaAtual.tipo === "text"}
                   maxLength={
                     perguntaAtual.id === "idade" ? 3 : 
@@ -220,6 +300,7 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
                   className="border border-black/15 dark:border-white/15 rounded-xl px-3 py-2.5 bg-white dark:bg-slate-700 text-[#05121a] dark:text-white mb-3 font-bold"
                   placeholder={perguntaAtual.tipo === "altura_mask" ? "1,75" : ""}
                   placeholderTextColor={theme === 'dark' ? '#94a3b8' : '#64748b'}
+                  testID={`input-${perguntaAtual.id}`}
                 />
 
                 <View className="flex-row justify-between mt-1.5 gap-2.5">
@@ -243,6 +324,21 @@ export default function CalculationScreen({ onComplete }: { onComplete?: () => v
         </View>
       </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Modal de Erro */}
+      <Modal visible={showErrorModal} transparent animationType="fade">
+        <View className="flex-1 justify-center items-center bg-black/40 px-6">
+          <View className="bg-white dark:bg-slate-800 p-5 rounded-2xl max-w-xs border border-slate-200 dark:border-slate-700 shadow-lg">
+            <Text className="text-red-500 font-black text-base mb-4 text-center">{errorMessage}</Text>
+            <TouchableOpacity
+              onPress={() => setShowErrorModal(false)}
+              className="bg-red-500 px-6 py-2.5 rounded-lg items-center"
+            >
+              <Text className="text-white font-bold">OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Modal de Nome da Dieta */}
       <Modal visible={showModal} transparent animationType="fade">

@@ -7,14 +7,12 @@ if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath });
 }
 
-const appJson = require('./app.json');
-
-module.exports = () => ({
-  expo: {
-    ...appJson.expo,
+module.exports = ({ config }) => {
+  return {
+    ...config,
     extra: {
-      ...(appJson.expo.extra || {}),
+      ...config.extra,
       GEMINI_API_KEY: process.env.EXPO_PUBLIC_GEMINI_API_KEY || '',
     },
-  },
-});
+  };
+};

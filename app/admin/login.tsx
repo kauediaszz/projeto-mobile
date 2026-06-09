@@ -1,7 +1,18 @@
 import { useAdminAuth } from '@/contexts/admin-auth-context';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Keyboard,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 
 export default function AdminLoginScreen() {
   const [username, setUsername] = useState('');
@@ -33,77 +44,88 @@ export default function AdminLoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.logo}>Dieta I.A.</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Admin</Text>
-          </View>
-        </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      style={styles.container}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.container}>
+            <View style={styles.card}>
+              {/* Header */}
+              <View style={styles.header}>
+                <Text style={styles.logo}>Dieta I.A.</Text>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>Admin</Text>
+                </View>
+              </View>
 
-        {/* Form */}
-        <View style={styles.form}>
-          {/* Username Field */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Usuário</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Usuário"
-              placeholderTextColor="#8b949e"
-              value={username}
-              onChangeText={setUsername}
-              editable={!loading}
-            />
-          </View>
+              {/* Form */}
+              <View style={styles.form}>
+                {/* Username Field */}
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.label}>Usuário</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Usuário"
+                    placeholderTextColor="#8b949e"
+                    value={username}
+                    onChangeText={setUsername}
+                    editable={!loading}
+                  />
+                </View>
 
-          {/* Password Field */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Senha</Text>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="Senha"
-                placeholderTextColor="#8b949e"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-                editable={!loading}
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-                disabled={loading}
-              >
-                <Text style={styles.eyeIcon}>
-                  {showPassword ? '👁' : '👁‍🗨'}
-                </Text>
-              </TouchableOpacity>
+                {/* Password Field */}
+                <View style={styles.fieldContainer}>
+                  <Text style={styles.label}>Senha</Text>
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      style={[styles.input, styles.passwordInput]}
+                      placeholder="Senha"
+                      placeholderTextColor="#8b949e"
+                      secureTextEntry={!showPassword}
+                      value={password}
+                      onChangeText={setPassword}
+                      editable={!loading}
+                    />
+                    <TouchableOpacity
+                      style={styles.eyeButton}
+                      onPress={() => setShowPassword(!showPassword)}
+                      disabled={loading}
+                    >
+                      <Text style={styles.eyeIcon}>
+                        {showPassword ? '👁' : '👁‍🗨'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                 
+                </View>
+
+                {/* Error Message */}
+                {error ? (
+                  <Text style={styles.errorText}>{error}</Text>
+                ) : null}
+
+                {/* Login Button */}
+                <TouchableOpacity
+                  style={[styles.button, loading && styles.buttonDisabled]}
+                  onPress={handleLogin}
+                  disabled={loading}
+                >
+                  <Text style={styles.buttonText}>
+                    {loading ? 'Entrando...' : 'Entrar'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-           
           </View>
-
-          {/* Error Message */}
-          {error ? (
-            <Text style={styles.errorText}>{error}</Text>
-          ) : null}
-
-          {/* Login Button */}
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Entrando...' : 'Entrar'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      
-    </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 

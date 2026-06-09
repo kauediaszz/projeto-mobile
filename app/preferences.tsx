@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { updateProfile } from "firebase/auth";
+import React, { useState } from "react";
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 
 import { useAuth } from "@/contexts/auth-context";
 import { useAppTheme } from "@/contexts/theme-context";
@@ -35,14 +35,16 @@ export default function PreferencesScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       className="flex-1"
     >
-      <ScrollView
-        className="flex-1 bg-white dark:bg-slate-900"
-        contentContainerClassName="pb-5"
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          className="flex-1 bg-white dark:bg-slate-900"
+          contentContainerClassName="pb-5"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
       <View className="px-4 pt-12">
         <TouchableOpacity
           onPress={() => router.back()}
@@ -122,7 +124,8 @@ export default function PreferencesScreen() {
           )}
         </View>
       </View>
-    </ScrollView>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

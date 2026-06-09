@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 
 interface AdminAuthContextType {
   isAuthenticated: boolean;
@@ -14,21 +15,19 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if admin is already authenticated on mount
-    if (typeof window !== 'undefined') {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const adminAuth = sessionStorage.getItem('adminAuth');
       setIsAuthenticated(adminAuth === 'true');
-      setIsLoading(false);
     }
+    setIsLoading(false);
   }, []);
 
   const login = (username: string, password: string): boolean => {
-    // Hardcoded credentials
     const ADMIN_USERNAME = 'admin';
     const ADMIN_PASSWORD = '123';
 
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      if (typeof window !== 'undefined') {
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
         sessionStorage.setItem('adminAuth', 'true');
       }
       setIsAuthenticated(true);
@@ -38,7 +37,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const logout = () => {
-    if (typeof window !== 'undefined') {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
       sessionStorage.removeItem('adminAuth');
     }
     setIsAuthenticated(false);
